@@ -27,7 +27,6 @@ public class Aluno {
   @Column(name = "genero", nullable = false)
   private Genero genero;
 
-
   @Column(name = "data_nascimento", nullable = false)
   private LocalDate dataNascimento;
 
