@@ -27,6 +27,13 @@ public class Aluno {
   @Column(name = "genero", nullable = false)
   private Genero genero;
 
+
   @Column(name = "data_nascimento", nullable = false)
   private LocalDate dataNascimento;
+
+  public Aluno(String nome, Genero genero, LocalDate dataNascimento) {
+    this.nomeCompleto = nome;
+    this.genero = genero;
+    this.dataNascimento = dataNascimento;
+  }
 }
