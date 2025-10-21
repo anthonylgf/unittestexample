@@ -72,8 +72,8 @@ class AlunoControllerTest {
                     MediaType
                         .APPLICATION_JSON) // .Define o cabeçalho Content-Type da requisição enviada
                 // ao controller.
-                .content(jsonDeEntrada) // Define o corpo (body) da requisição HTTP que será
-            // enviada.25250nnbbbb ,,,,4
+                .content(
+                    jsonDeEntrada) // Define o corpo (body) da requisição HTTP que será enviada.
             )
         .andExpect(status().isCreated()); // Verifica se o status HTTP da resposta foi o esperado.
     verify(service)
@@ -90,7 +90,7 @@ class AlunoControllerTest {
             + "\"nome\": \"KARINE\","
             + "\"sobrenome\": \"FERREIRA\","
             + "\"genero\": \"FEMININO\","
-            + "\"dataNascimento\": \"18-06-2026\"" // Formato correto!
+            + "\"dataNascimento\": \"18-06-2026\""
             + "}";
 
     testClient
@@ -106,7 +106,7 @@ class AlunoControllerTest {
             + "\"nome\": \"KARINE\","
             + "\"sobrenome\": \"FERREIRA\","
             + "\"genero\": \"FEMININO\","
-            + "\"dataNascimento\": \"18-06-2006\"" // Formato correto!
+            + "\"dataNascimento\": \"18-06-2006\""
             + "}";
     when(service.salvar(any(Aluno.class))).thenThrow(AlunoExisteMesmoNomeException.class);
 
@@ -195,10 +195,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void buscarAluno_ComIdExistente_RetornarAlunoComStatus200()
-      throws Exception { // Pode melhorar fazendo verificar se o JSON retornado está correto e se o
-    // mapeamento para o DTO está funcionando conforme esperado, mas teria que
-    // arrumar a classe AlunoDto
+  public void buscarAluno_ComIdExistente_RetornarAlunoComStatus200() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"KARINE\","

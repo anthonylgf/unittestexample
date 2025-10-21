@@ -2,4 +2,68 @@ package com.example.unittestexample.utils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DateUtilsTest {}
+import java.time.LocalDate;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+class DateUtilsTest {
+
+  private DateUtils dateUtils = Mockito.spy(new DateUtils());
+  private final LocalDate dataAtual = LocalDate.of(2025, 10, 21);
+  private final LocalDate datePassou = LocalDate.of(2006, 6, 18);
+  private final LocalDate dateProxima = LocalDate.of(2006, 10, 22);
+  private final LocalDate dateNoDia = LocalDate.of(2006, 10, 21);
+  private final LocalDate dataFutura = LocalDate.of(2026, 10, 22);
+
+  @Test
+  void diferencaEmAnosDataAtual_AniversarioJaPassou() {
+    Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
+    int idade = dateUtils.diferencaEmAnosDataAtual(datePassou);
+    assertEquals(19, idade);
+  }
+
+  @Test
+  void diferencaEmAnosDataAtual_AniversarioProximo() {
+    Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
+    int idade = dateUtils.diferencaEmAnosDataAtual(dateProxima);
+    assertEquals(18, idade);
+  }
+
+  @Test
+  void diferencaEmAnosDataAtual_AniversarioNoDia() {
+    Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
+    int idade = dateUtils.diferencaEmAnosDataAtual(dateNoDia);
+    assertEquals(19, idade);
+  }
+
+  @Test
+  void diferencaEmAnosDataAtual_AniversarioFuturo() {
+    Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
+    int idade = dateUtils.diferencaEmAnosDataAtual(dataFutura);
+    assertEquals(-1, idade);
+  }
+
+  @Test
+  void recuperarDataEmAnos_idadeNormal() {
+    int idade = 19;
+    LocalDate data = dateUtils.recuperarDataEmAnos(idade);
+    int ano = data.getYear();
+    assertEquals(2006, ano);
+  }
+
+  @Test
+  void recuperarDataEmAnos_IdadeZerada() {
+    int idade = 0;
+    LocalDate data = dateUtils.recuperarDataEmAnos(idade);
+    int ano = data.getYear();
+    assertEquals(2025, ano);
+  }
+
+  @Test
+  void recuperarDataEmAnos_IdadeNegativa() {
+    int idade = -3;
+    LocalDate data = dateUtils.recuperarDataEmAnos(idade);
+    int ano = data.getYear();
+    assertEquals(2028, ano);
+  }
+}
