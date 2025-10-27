@@ -45,6 +45,7 @@ class DateUtilsTest {
 
   @Test
   void recuperarDataEmAnos_idadeNormal() {
+    Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
     int idade = 19;
     LocalDate data = dateUtils.recuperarDataEmAnos(idade);
     int ano = data.getYear();
@@ -53,6 +54,7 @@ class DateUtilsTest {
 
   @Test
   void recuperarDataEmAnos_IdadeZerada() {
+    Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
     int idade = 0;
     LocalDate data = dateUtils.recuperarDataEmAnos(idade);
     int ano = data.getYear();
@@ -61,6 +63,7 @@ class DateUtilsTest {
 
   @Test
   void recuperarDataEmAnos_IdadeNegativa() {
+    Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
     int idade = -3;
     LocalDate data = dateUtils.recuperarDataEmAnos(idade);
     int ano = data.getYear();

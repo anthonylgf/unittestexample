@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
@@ -38,7 +38,7 @@ class AlunoControllerTest {
 
   @Autowired private ObjectMapper objectMapper;
 
-  @Mock AlunoRepository repository;
+  @MockitoBean AlunoRepository repository;
 
   @MockitoBean AlunoService service;
 
@@ -46,7 +46,7 @@ class AlunoControllerTest {
 
   @Autowired MockMvc testClient;
 
-  @org.junit.jupiter.api.BeforeEach
+  @BeforeEach
   void setup() {
     objectMapper.registerModule(new JavaTimeModule());
   }
@@ -54,13 +54,13 @@ class AlunoControllerTest {
   private Aluno aluno = new Aluno("Karine Ferreira", Genero.FEMININO, LocalDate.of(2006, 6, 18));
 
   @Test
-  public void criarAluno_ComDadosValidos_RetornarAlunoComStatus204() throws Exception {
+  public void criarAluno_ComDadosValidos_RetornarAlunoComStatus201() throws Exception {
     when(service.salvar(any(Aluno.class))).thenReturn(aluno); // Quando
 
     String jsonDeEntrada =
         "{"
-            + "\"nome\": \"KARINE\","
-            + "\"sobrenome\": \"FERREIRA\","
+            + "\"nome\": \"Karine\","
+            + "\"sobrenome\": \"Ferreira\","
             + "\"genero\": \"FEMININO\","
             + "\"dataNascimento\": \"18-06-2006\"" // Formato correto!
             + "}";
@@ -77,13 +77,12 @@ class AlunoControllerTest {
             )
         .andExpect(status().isCreated()); // Verifica se o status HTTP da resposta foi o esperado.
     verify(service)
-        .salvar(
-            any(Aluno.class)); // Confirma que o metodo salvar() no service foi chamado exatamente
+        .salvar(eq(aluno)); // Confirma que o metodo salvar() no service foi chamado exatamente
     // uma vez durante a execução da requisição HTTP
   }
 
   @Test
-  public void criarAluno_ComDadosInvalidos_RetornarErroMessage400() throws Exception {
+  public void criarAluno_dataNascimentoInvalida_RetornarErroMessage400() throws Exception {
 
     String jsonDeEntrada =
         "{"
@@ -95,7 +94,8 @@ class AlunoControllerTest {
 
     testClient
         .perform(post("/alunos").contentType(MediaType.APPLICATION_JSON).content(jsonDeEntrada))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Data de nascimento inválida."));
     verify(service, never()).salvar(any(Aluno.class));
   }
 
@@ -112,7 +112,8 @@ class AlunoControllerTest {
 
     testClient
         .perform(post("/alunos").contentType(MediaType.APPLICATION_JSON).content(jsonDeEntrada))
-        .andExpect(status().isConflict());
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.message").value("Aluno com estes dados já existe."));
     verify(service).salvar(any(Aluno.class));
   }
 
@@ -148,12 +149,14 @@ class AlunoControllerTest {
             patch("/alunos/{id}", aluno_id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonDeEntrada))
-        .andExpect(status().isNotFound());
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Id não encontrado"));
+    ;
     verify(service).atualizarAluno(eq(aluno_id), any(Aluno.class));
   }
 
   @Test
-  public void atualizarAluno_ComDadosInvalidos_RetornarErroMessage400() throws Exception {
+  public void atualizarAluno_ComNomeInvalido_RetornarErroMessage400() throws Exception {
     Long aluno_id = 1L;
 
     String jsonDeEntrada = "{" + "\"nome\": \"Jo5e\"," + "\"sobrenome\": \"William!\"" + "}";
@@ -163,7 +166,8 @@ class AlunoControllerTest {
             patch("/alunos/{id}", aluno_id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonDeEntrada))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Caracteres inválidos no nome do aluno."));
   }
 
   @Test
@@ -190,7 +194,10 @@ class AlunoControllerTest {
 
     when(service.buscarPorId(any(Long.class))).thenThrow(new AlunoNaoEncontradoException(id));
 
-    testClient.perform(get("/alunos/{id}", id)).andExpect(status().isNotFound());
+    testClient
+        .perform(get("/alunos/{id}", id))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Id não encontrado"));
     verify(service).buscarPorId(id);
   }
 
@@ -248,7 +255,8 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void buscarTodosOsAlunos_ComFiltrosInvalidos_RetornarErro400() throws Exception {
+  public void buscarTodosOsAlunos_ComParametrosListagemInvalidos_RetornarErro400()
+      throws Exception {
     Integer pagina = 0;
     Integer limite = 10;
 
@@ -261,7 +269,8 @@ class AlunoControllerTest {
                 .param("pagina", pagina.toString())
                 .param("limite", limite.toString())
                 .param("nome", "Jose"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Parametros de listagem invalidos"));
 
     verify(service).listarAlunos(any(AlunoFilters.class), eq(pagina), eq(limite));
   }
