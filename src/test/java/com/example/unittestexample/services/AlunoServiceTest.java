@@ -39,15 +39,16 @@ class AlunoServiceTest {
   @Mock private ApplicationProperties applicationProperties;
   @Mock private DateUtils dateUtils;
 
-  private Aluno aluno = new Aluno("Karine Ferreira", Genero.FEMININO, LocalDate.of(2006, 6, 18));
+  private Aluno aluno =
+      new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
 
   @Test
   void salvar_ComAlunoValido_RetornarAlunoSalvo() {
     aluno.setId(1L);
-    when(applicationProperties.getMaximoIdade()).thenReturn(25);
-    when(applicationProperties.getMinimoIdade()).thenReturn(10);
+    when(applicationProperties.getMaximoIdade()).thenReturn(10);
+    when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
-    when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(20);
+    when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(4);
     when(alunoRepository.findByNomeCompleto(aluno.getNomeCompleto())).thenReturn(Optional.empty());
     when(alunoRepository.save(aluno)).thenReturn(aluno);
 
@@ -61,10 +62,10 @@ class AlunoServiceTest {
   @Test
   void salvar_ComIdadeMenorQueMinima_RetornarIdadeInvalidaException() {
     aluno.setId(1L);
-    when(applicationProperties.getMaximoIdade()).thenReturn(25);
-    when(applicationProperties.getMinimoIdade()).thenReturn(10);
+    when(applicationProperties.getMaximoIdade()).thenReturn(10);
+    when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
-    when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(9);
+    when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(1);
 
     assertThrows(IdadeInvalidaException.class, () -> alunoService.salvar(aluno));
 
@@ -74,10 +75,10 @@ class AlunoServiceTest {
   @Test
   void salvar_ComIdadeMaiorQueMaxima_RetornarIdadeInvalidaException() {
     aluno.setId(1L);
-    when(applicationProperties.getMaximoIdade()).thenReturn(25);
-    when(applicationProperties.getMinimoIdade()).thenReturn(10);
+    when(applicationProperties.getMaximoIdade()).thenReturn(10);
+    when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
-    when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(26);
+    when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(11);
 
     assertThrows(IdadeInvalidaException.class, () -> alunoService.salvar(aluno));
 
@@ -87,10 +88,10 @@ class AlunoServiceTest {
   @Test
   void salvar_ComNomeRepetido_RetornarAlunoExisteMesmoNomeException() {
     aluno.setId(1L);
-    when(applicationProperties.getMaximoIdade()).thenReturn(25);
-    when(applicationProperties.getMinimoIdade()).thenReturn(10);
+    when(applicationProperties.getMaximoIdade()).thenReturn(10);
+    when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
-    when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(20);
+    when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(4);
     when(alunoRepository.findByNomeCompleto(aluno.getNomeCompleto()))
         .thenReturn(Optional.of(aluno));
 
@@ -119,7 +120,8 @@ class AlunoServiceTest {
   @Test
   void atualizarAluno_ComIdExistente_RetornarAlunoAtualizado() {
 
-    Aluno alunoAtualizado = new Aluno("Karine Araujo", Genero.FEMININO, LocalDate.of(2006, 6, 18));
+    Aluno alunoAtualizado =
+        new Aluno(1L, "Karine Araujo", Genero.FEMININO, LocalDate.now().minusYears(4L));
     when(alunoRepository.findById(1L)).thenReturn(Optional.of(alunoAtualizado));
 
     alunoService.atualizarAluno(1L, alunoAtualizado);
@@ -130,7 +132,8 @@ class AlunoServiceTest {
 
   @Test
   void atualizarAluno_ComIdInexistente_RetornarAlunoNaoEncontradoException() {
-    Aluno alunoAtualizado = new Aluno("Karine Araujo", Genero.FEMININO, LocalDate.of(2006, 6, 18));
+    Aluno alunoAtualizado =
+        new Aluno(99L, "Karine Araujo", Genero.FEMININO, LocalDate.now().minusYears(4L));
     when(alunoRepository.findById(99L)).thenReturn(Optional.empty());
 
     assertThrows(
@@ -165,10 +168,10 @@ class AlunoServiceTest {
     Integer limite = 10;
     AlunoFilters alunoFilters = mock(AlunoFilters.class);
 
-    Mockito.lenient().when(applicationProperties.getMaximoIdade()).thenReturn(25);
-    Mockito.lenient().when(applicationProperties.getMinimoIdade()).thenReturn(10);
+    Mockito.lenient().when(applicationProperties.getMaximoIdade()).thenReturn(10);
+    Mockito.lenient().when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
-    Mockito.lenient().when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(9);
+    Mockito.lenient().when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(1);
 
     assertThrows(
         ParametrosListagemInvalidosException.class,
@@ -183,8 +186,8 @@ class AlunoServiceTest {
     Integer limite = 10;
     AlunoFilters alunoFilters = mock(AlunoFilters.class);
 
-    when(alunoFilters.getIdadeMinima()).thenReturn(15);
-    when(alunoFilters.getIdadeMaxima()).thenReturn(30);
+    when(alunoFilters.getIdadeMinima()).thenReturn(2);
+    when(alunoFilters.getIdadeMaxima()).thenReturn(10);
 
     assertThrows(
         NullPointerException.class, () -> alunoService.listarAlunos(alunoFilters, pagina, limite));
@@ -227,24 +230,24 @@ class AlunoServiceTest {
     Aluno aluno2 = mock(Aluno.class);
     List<Aluno> listaAlunos = Arrays.asList(aluno1, aluno2);
     AlunoFilters alunoFilters = mock(AlunoFilters.class);
-    LocalDate data = LocalDate.of(2006, 6, 18);
+    LocalDate data = LocalDate.now().minusYears(4L);
 
     Pageable pageableEsperado = Pageable.ofSize(limite).withPage(pagina);
     Page<Aluno> pageMock = new PageImpl<>(listaAlunos, pageableEsperado, listaAlunos.size());
 
     when(alunoFilters.getNomeCompleto()).thenReturn(null);
     when(alunoFilters.getGenero()).thenReturn(null);
-    when(alunoFilters.getIdadeMinima()).thenReturn(10);
+    when(alunoFilters.getIdadeMinima()).thenReturn(2);
     when(alunoFilters.getIdadeMaxima()).thenReturn(null);
 
-    when(dateUtils.recuperarDataEmAnos(10)).thenReturn(data);
+    when(dateUtils.recuperarDataEmAnos(2)).thenReturn(data);
 
     when(alunoRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(pageMock);
 
     alunoService.listarAlunos(alunoFilters, pagina, limite);
 
-    verify(dateUtils, times(1)).recuperarDataEmAnos(10);
+    verify(dateUtils, times(1)).recuperarDataEmAnos(2);
     verify(alunoRepository, times(1)).findAll(any(Specification.class), eq(pageableEsperado));
   }
 
@@ -256,7 +259,7 @@ class AlunoServiceTest {
     Aluno aluno2 = mock(Aluno.class);
     List<Aluno> listaAlunos = Arrays.asList(aluno1, aluno2);
     AlunoFilters alunoFilters = mock(AlunoFilters.class);
-    LocalDate data = LocalDate.of(2006, 6, 18);
+    LocalDate data = LocalDate.now().minusYears(4L);
 
     Pageable pageableEsperado = Pageable.ofSize(limite).withPage(pagina);
     Page<Aluno> pageMock = new PageImpl<>(listaAlunos, pageableEsperado, listaAlunos.size());
@@ -264,16 +267,16 @@ class AlunoServiceTest {
     when(alunoFilters.getNomeCompleto()).thenReturn(null);
     when(alunoFilters.getGenero()).thenReturn(null);
     when(alunoFilters.getIdadeMinima()).thenReturn(null);
-    when(alunoFilters.getIdadeMaxima()).thenReturn(30);
+    when(alunoFilters.getIdadeMaxima()).thenReturn(10);
 
-    when(dateUtils.recuperarDataEmAnos(30)).thenReturn(data);
+    when(dateUtils.recuperarDataEmAnos(10)).thenReturn(data);
 
     when(alunoRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(pageMock);
 
     alunoService.listarAlunos(alunoFilters, pagina, limite);
 
-    verify(dateUtils, times(1)).recuperarDataEmAnos(30);
+    verify(dateUtils, times(1)).recuperarDataEmAnos(10);
     verify(alunoRepository, times(1)).findAll(any(Specification.class), eq(pageableEsperado));
   }
 
@@ -349,19 +352,19 @@ class AlunoServiceTest {
     Pageable pageableEsperado = Pageable.ofSize(limite).withPage(pagina);
     Page<Aluno> pageMock = new PageImpl<>(listaAlunos, pageableEsperado, listaAlunos.size());
 
-    when(alunoFilters.getIdadeMinima()).thenReturn(10);
-    when(alunoFilters.getIdadeMaxima()).thenReturn(30);
+    when(alunoFilters.getIdadeMinima()).thenReturn(2);
+    when(alunoFilters.getIdadeMaxima()).thenReturn(10);
 
+    when(dateUtils.recuperarDataEmAnos(2)).thenReturn(LocalDate.of(2023, 1, 1));
     when(dateUtils.recuperarDataEmAnos(10)).thenReturn(LocalDate.of(2015, 1, 1));
-    when(dateUtils.recuperarDataEmAnos(30)).thenReturn(LocalDate.of(2006, 1, 1));
 
     when(alunoRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(pageMock);
 
     alunoService.listarAlunos(alunoFilters, pagina, limite);
 
+    verify(dateUtils, times(1)).recuperarDataEmAnos(2);
     verify(dateUtils, times(1)).recuperarDataEmAnos(10);
-    verify(dateUtils, times(1)).recuperarDataEmAnos(30);
     verify(alunoRepository, times(1)).findAll(any(Specification.class), eq(pageableEsperado));
   }
 }

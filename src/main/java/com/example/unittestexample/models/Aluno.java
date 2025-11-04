@@ -9,13 +9,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @Entity
@@ -33,10 +30,4 @@ public class Aluno {
 
   @Column(name = "data_nascimento", nullable = false)
   private LocalDate dataNascimento;
-
-  public Aluno(String nome, Genero genero, LocalDate dataNascimento) {
-    this.nomeCompleto = nome;
-    this.genero = genero;
-    this.dataNascimento = dataNascimento;
-  }
 }

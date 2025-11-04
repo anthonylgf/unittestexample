@@ -17,7 +17,8 @@ class AlunoMapperTest {
 
   AlunoMapper alunoMapper = AlunoMapper.INSTANCE;
 
-  private Aluno aluno = new Aluno("Karine Ferreira", Genero.FEMININO, LocalDate.of(2006, 6, 18));
+  private Aluno aluno =
+      new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
   private AlunoDto alunoDto = new AlunoDto();
   private Aluno alunoTarget;
   private Aluno alunoService;
@@ -27,15 +28,15 @@ class AlunoMapperTest {
     alunoDto.setNome("Karine");
     alunoDto.setSobrenome("Ferreira");
     alunoDto.setGenero(Genero.FEMININO);
-    alunoDto.setDataNascimento(LocalDate.of(2006, 6, 18));
+    alunoDto.setDataNascimento(LocalDate.now().minusYears(4L));
 
-    alunoTarget = new Aluno("Nome", Genero.MASCULINO, LocalDate.now());
+    alunoTarget = new Aluno(1L, "Nome", Genero.MASCULINO, LocalDate.now());
     alunoTarget.setNomeCompleto("Jose William");
     alunoTarget.setGenero(Genero.MASCULINO);
     alunoTarget.setId(1L);
-    alunoTarget.setDataNascimento(LocalDate.of(2005, 6, 9));
+    alunoTarget.setDataNascimento(LocalDate.now().minusYears(4L));
 
-    alunoService = new Aluno("Nome", Genero.MASCULINO, LocalDate.now());
+    alunoService = new Aluno(1L, "Nome", Genero.MASCULINO, LocalDate.now());
     alunoService.setNomeCompleto("Jose Ferreira");
     alunoService.setGenero(Genero.MASCULINO);
     alunoService.setId(99L);
@@ -65,7 +66,7 @@ class AlunoMapperTest {
   @Test
   void mapearParaAlunoDtoPage() {
     PageRequest pagina = PageRequest.of(0, 2);
-    Aluno aluno1 = new Aluno("Jose William", Genero.MASCULINO, LocalDate.of(2005, 6, 9));
+    Aluno aluno1 = new Aluno(1L, "Jose William", Genero.MASCULINO, LocalDate.now().minusYears(4L));
 
     List<Aluno> alunoList = List.of(aluno, aluno1);
     Page<Aluno> alunos = new PageImpl<>(alunoList, pagina, alunoList.size());
@@ -92,6 +93,6 @@ class AlunoMapperTest {
     assertEquals(1L, alunoTarget.getId());
     assertEquals("Jose Ferreira", alunoTarget.getNomeCompleto());
     assertEquals(Genero.MASCULINO, alunoTarget.getGenero());
-    assertEquals(LocalDate.of(2005, 6, 9), alunoTarget.getDataNascimento());
+    assertEquals(LocalDate.now().minusYears(4L), alunoTarget.getDataNascimento());
   }
 }

@@ -140,7 +140,7 @@ public class GlobalExceptionHandler {
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(MissingServletRequestParameterException.class)
-  ResponseEntity<RespostaErro> methodArgumentTypeMismatchException(
+  ResponseEntity<RespostaErro> MissingServletRequestParameterException(
       MissingServletRequestParameterException e) {
     log.error("Erro ao receber parametros de mensagens", e);
     RespostaErro respostaErro = new RespostaErro();
