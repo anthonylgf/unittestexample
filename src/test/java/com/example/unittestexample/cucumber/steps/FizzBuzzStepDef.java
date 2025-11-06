@@ -2,6 +2,7 @@ package com.example.unittestexample.cucumber.steps;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.example.unittestexample.cucumber.models.PaginaAlunos;
 import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.models.Aluno;
@@ -16,8 +17,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -43,11 +42,30 @@ public class FizzBuzzStepDef {
 
   private Long id;
 
+  private int pagina;
+
+  private int limite;
+
+  private List<Aluno> alunos;
+
   private String gerarNomeAleatorio() {
     return UUID.randomUUID().toString().replace("-", "").replaceAll("[0-9]", "a").toUpperCase();
   }
 
-  private List<Aluno> alunos;
+  private AlunoDto alunoDto =
+      new AlunoDto(
+          null,
+          gerarNomeAleatorio(),
+          gerarNomeAleatorio(),
+          Genero.FEMININO,
+          LocalDate.now().minusYears(4L));
+  private AlunoDto alunoDto2 =
+      new AlunoDto(
+          null,
+          gerarNomeAleatorio(),
+          gerarNomeAleatorio(),
+          Genero.FEMININO,
+          LocalDate.now().minusYears(4L));
 
   @Given("que o banco de dados está vazio")
   public void bancoDados() {
@@ -174,26 +192,40 @@ public class FizzBuzzStepDef {
     responseSpec.expectStatus().isNotFound();
   }
 
-  private int pagina;
-  private int limite;
-
-  public static class RestPageImpl<T> extends PageImpl<T> {
-    public RestPageImpl(List<T> content, Pageable pageable, long total) {
-      super(content, pageable, total);
-    }
-  }
-
-  @Given("que eu passe {int} alunos")
-  public void bancoDadosTodosOsAlunos(Integer totalAlunos) {
+  @Given("que o banco de dados está vazio e passo o limite e a paginacao")
+  public void bancoDadosTodosOsAlunos() {
     this.pagina = 0;
     this.limite = 2;
-    Aluno aluno2 =
-        new Aluno(null, gerarNomeAleatorio(), Genero.MASCULINO, LocalDate.now().minusYears(4L));
-    Aluno aluno3 =
-        new Aluno(null, gerarNomeAleatorio(), Genero.FEMININO, LocalDate.now().minusYears(5L));
+    System.out.println("Limpando o banco...");
 
-    alunoRepository.save(aluno2);
-    alunoRepository.save(aluno3);
+    if (alunoRepository != null) {
+      alunoRepository.deleteAll();
+    }
+
+    if (!alunoRepository.findAll().isEmpty()) {
+      throw new IllegalStateException("O banco de dados não foi limpo totalmente");
+    }
+    System.out.println("Banco limpo!");
+
+    responseSpec =
+        webTestClient
+            .post()
+            .uri("/alunos")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(this.alunoDto)
+            .exchange();
+    responseSpec.expectStatus().isCreated();
+    responseSpec =
+        webTestClient
+            .post()
+            .uri("/alunos")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(this.alunoDto2)
+            .exchange();
+    responseSpec.expectStatus().isCreated();
+
+    long count = alunoRepository.count();
+    System.out.println("Total de alunos após setup: " + count);
   }
 
   @When("eu faco uma requisicao GET para alunos")
@@ -212,24 +244,27 @@ public class FizzBuzzStepDef {
   }
 
   @Then("retorne uma lista de alunos")
-  public List<Aluno> respostaTodosOsAlunos() {
-    alunos =
+  public void respostaTodosOsAlunos() {
+    var pageAlunos =
         responseSpec
             .expectStatus()
             .isOk()
-            .expectBodyList(Aluno.class)
+            .expectBody(PaginaAlunos.class)
             .returnResult()
             .getResponseBody();
-    Assertions.assertNotNull(alunos, "A lista de alunos não deve ser nula.");
+    Assertions.assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
     Assertions.assertEquals(
         this.limite,
-        alunos.size(),
+        pageAlunos.getContent().size(),
         "O número de alunos retornados deve ser igual ao limite da página.");
-    if (alunos != null) {
-      alunos.forEach(a -> System.out.println("Aluno: " + a.getNomeCompleto()));
-      System.out.println("Total de alunos: " + alunos.size());
-    }
-    return alunos;
+    Assertions.assertNotNull(pageAlunos.getPage(), "Os metadados da página não devem ser nulos.");
+    Assertions.assertEquals(
+        this.limite, pageAlunos.getPage().size(), "O tamanho da página deve ser igual ao limite.");
+    Assertions.assertEquals(
+        this.pagina, pageAlunos.getPage().number(), "O número da página deve ser zero.");
+    Assertions.assertEquals(
+        2L, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 2.");
+    Assertions.assertEquals(1, pageAlunos.getPage().totalPages(), "O total de páginas deve ser 1.");
   }
 
   private final String paginaInvalida = "abc";
@@ -237,6 +272,7 @@ public class FizzBuzzStepDef {
 
   @Given("que eu passe {int} alunos no banco")
   public void bancoDadosTodosOsAlunos_Erro400(Integer totalAlunos) {
+
     Aluno aluno2 =
         new Aluno(null, gerarNomeAleatorio(), Genero.MASCULINO, LocalDate.now().minusYears(4L));
     Aluno aluno3 =
@@ -305,14 +341,6 @@ public class FizzBuzzStepDef {
   public void novarequisicaoDeletarAluno_Erro404() {
     responseSpec = webTestClient.get().uri("/alunos/{id}", aluno.getId()).exchange();
   }
-
-  private AlunoDto alunoDto =
-      new AlunoDto(
-          null,
-          gerarNomeAleatorio(),
-          gerarNomeAleatorio(),
-          Genero.FEMININO,
-          LocalDate.now().minusYears(4L));
 
   @Given("que o aluno esteja no banco de dados")
   public void salvarAlunoNoBanco_Retornar204() {

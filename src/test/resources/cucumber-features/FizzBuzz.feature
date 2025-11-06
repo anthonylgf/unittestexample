@@ -24,7 +24,7 @@ Funcionalidade: Requisicoes do aluno
      Entao retorna erro 404
 
  Cenario: Listar alunos
-     Dado que eu passe 2 alunos
+     Dado que o banco de dados está vazio e passo o limite e a paginacao
      Quando eu faco uma requisicao GET para alunos
      Entao retorne uma lista de alunos
 
