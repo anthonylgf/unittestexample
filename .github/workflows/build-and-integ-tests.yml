@@ -21,4 +21,6 @@ jobs:
         run: mvn com.spotify.fmt:fmt-maven-plugin:format
       - name: Initialize Docker Infrastructure
         run: docker compose up --build -d
+      - name: Run the cucumber test
+        run:  mvn test "-Dtest=com.example.unittestexample.cucumber.TestRunner"
 
