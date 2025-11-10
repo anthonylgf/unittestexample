@@ -14,7 +14,7 @@ import org.junit.platform.suite.api.*;
   @ConfigurationParameter(
       key = PLUGIN_PROPERTY_NAME,
       value =
-          "summary,pretty,json:target/cucumber-reports/cucumber.json,html:target/cucumber-reports/cucumber.json"),
+          "summary,pretty,json:target/cucumber-reports/cucumber.json,html:target/cucumber-reports/cucumber.html"),
   @ConfigurationParameter(
       key = GLUE_PROPERTY_NAME,
       value =

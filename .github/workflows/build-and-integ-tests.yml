@@ -22,5 +22,9 @@ jobs:
       - name: Initialize Docker Infrastructure
         run: docker compose up --build -d
       - name: Run the cucumber test
-        run:  mvn test "-Dtest=com.example.unittestexample.cucumber.TestRunner"
-
+        run:  mvn test -Dtest=TestRunner
+      - name: Upload Cucumber Report
+        uses: actions/upload-artifact@v5
+        with:
+          name: Relatorio-Cucumber
+          path: target/cucumber-reports/cucumber.html
