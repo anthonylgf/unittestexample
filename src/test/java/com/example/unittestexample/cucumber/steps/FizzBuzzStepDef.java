@@ -2,11 +2,14 @@ package com.example.unittestexample.cucumber.steps;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.example.unittestexample.cucumber.context.IntegrationTestsContext;
 import com.example.unittestexample.cucumber.models.PaginaAlunos;
 import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.repositories.AlunoRepository;
+import io.cucumber.java.After;
+import io.cucumber.java.Before;
 import io.cucumber.java.an.E;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
@@ -23,6 +26,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @RequiredArgsConstructor
 public class FizzBuzzStepDef {
 
+  private final AlunoRepository alunoRepository;
+  private final WebTestClient webTestClient;
+  private final IntegrationTestsContext integrationTestsContext;
+
   private String jsonDeEntrada =
       "{"
           + "\"nome\": \"KARINE\","
@@ -30,10 +37,6 @@ public class FizzBuzzStepDef {
           + "\"genero\": \"FEMININO\","
           + "\"dataNascimento\": \"31-10-2021\"" // Formato correto!
           + "}";
-
-  private final AlunoRepository alunoRepository;
-
-  private final WebTestClient webTestClient;
 
   private WebTestClient.ResponseSpec responseSpec;
 
@@ -47,6 +50,10 @@ public class FizzBuzzStepDef {
   private int limite;
 
   private List<Aluno> alunos;
+
+  @Before("@CleanStateBeforeExecution")
+  @After("@CleanStateAfterExecution")
+  public void limparBaseParaTeste() {}
 
   private String gerarNomeAleatorio() {
     return UUID.randomUUID().toString().replace("-", "").replaceAll("[0-9]", "a").toUpperCase();
