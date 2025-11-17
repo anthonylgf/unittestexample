@@ -65,7 +65,7 @@ public class AlunoStepDefs {
     }
   }
 
-  @Quando("eu faco uma requisicao POST para aluno com dados validos")
+  @Quando("eu tento criar um aluno")
   public void requisicaoCadastrar201() {
 
     String jsonDeEntrada =
@@ -84,7 +84,7 @@ public class AlunoStepDefs {
             .exchange();
   }
 
-  @Entao("o codigo de resposta deve ser 201")
+  @Entao("o aluno tem que ser Criado no banco")
   public void respostaCadastrar201() {
     responseSpec.expectStatus().isCreated();
   }
@@ -102,7 +102,7 @@ public class AlunoStepDefs {
     System.out.println("Aluno cadastrado com sucesso");
   }
 
-  @Quando("eu faco uma requisicao POST para aluno com nome invalido")
+  @Quando("eu tento criar um aluno com nome invalido")
   public void requisicaoCadastrar400() {
     Aluno aluno400 =
         new Aluno(1L, "Karine Ferreira1", Genero.FEMININO, LocalDate.now().minusYears(4L));
@@ -115,7 +115,7 @@ public class AlunoStepDefs {
             .exchange();
   }
 
-  @Entao("o codigo de resposta deve ser 400")
+  @Entao("a resposta deve ser um erro de formatação")
   public void respostaCadastrar400() {
     responseSpec.expectStatus().isBadRequest();
   }
@@ -133,7 +133,7 @@ public class AlunoStepDefs {
             .exchange();
   }
 
-  @Quando("eu faco uma requisicao POST para aluno com o mesmo nome")
+  @Quando("eu tento criar um aluno com o mesmo nome")
   public void requisicaoCadastrarNomeDuplicado() {
     responseSpec =
         webTestClient
@@ -168,7 +168,7 @@ public class AlunoStepDefs {
     System.out.println("ID do Aluno obtido da resposta: " + alunoCriado.getId());
   }
 
-  @Quando("eu faco uma requisicao GET para aluno atraves do id")
+  @Quando("eu tendo procurar um aluno atraves do id")
   public void requisicaoProcurarId() {
     AlunoDto alunoDto = integrationTestsContext.getAlunoCriadoBanco();
     Assertions.assertNotNull(alunoDto);
@@ -186,7 +186,7 @@ public class AlunoStepDefs {
     integrationTestsContext.setAlunoRecuperadoDoBanco(alunoRecuperado);
   }
 
-  @Entao("retorna sucesso")
+  @Entao("retorne o aluno procurado")
   public void respostaProcurarId() {
     AlunoDto alunoCriado = integrationTestsContext.getAlunoCriadoBanco();
     AlunoDto alunoRecuperado = integrationTestsContext.getAlunoRecuperadoDoBanco();
@@ -199,12 +199,12 @@ public class AlunoStepDefs {
     System.out.println("Aluno com ID: " + alunoIdInexistente.getId());
   }
 
-  @Quando("eu faco uma requisicao GET para aluno com id inexistente")
+  @Quando("eu tendo procurar um aluno com id inexistente")
   public void requisicaoProcurarId_Retornar404() {
     responseSpec = webTestClient.get().uri("/alunos/{id}", alunoIdInexistente.getId()).exchange();
   }
 
-  @Entao("retorna erro 404")
+  @Entao("retorna que nao conseguiu encontrar o recurso solicitado")
   public void respostaProcurarId_Retornar404() {
     responseSpec.expectStatus().isNotFound();
   }
@@ -260,7 +260,7 @@ public class AlunoStepDefs {
     alunoFilters.setIdadeMaxima(2);
   }
 
-  @Quando("eu faco uma nova requisicao GET para alunos")
+  @Quando("eu procurar os alunos")
   public void requisicaoGetFiltroNomeCompleto_RetornarSucesso() {
     responseSpec =
         webTestClient
@@ -313,7 +313,7 @@ public class AlunoStepDefs {
     System.out.println("Total de alunos após setup: " + count);
   }
 
-  @Quando("eu faco uma nova requisicao GET para alunos com parametros Idade maxima e minima")
+  @Quando("eu procurar os alunos com parametros Idade maxima e minima")
   public void requisicaoGetFiltroIdadesInvalidas_RetornarErro() {
     int idadeMin = 10;
     int idadeMax = 2;
@@ -332,12 +332,7 @@ public class AlunoStepDefs {
             .exchange();
   }
 
-  @Entao("retorna erro 400")
-  public void RespostaErro400() {
-    responseSpec.expectStatus().isBadRequest();
-  }
-
-  @Quando("eu faco uma nova requisicao GET para alunos com parametros de Idade")
+  @Quando("eu procurar os alunos com parametros de Idade")
   public void requisicaoGetFiltroIdades() {
     int idadeMin = 2;
     int idadeMax = 10;
@@ -419,7 +414,7 @@ public class AlunoStepDefs {
     alunoFilters.setGenero(this.generoFiltro);
   }
 
-  @Quando("eu faco uma requisicao GET para alunos com o filtro de genero")
+  @Quando("eu procuro os alunos com o filtro de genero")
   public void requisicaoGetFiltroGenero() {
     responseSpec =
         webTestClient
@@ -500,7 +495,7 @@ public class AlunoStepDefs {
             .exchange();
   }
 
-  @Entao("retorne uma lista de alunos")
+  @Entao("retorne uma lista somente com os alunos que estao dentro do que pediram")
   public void respostaTodosOsAlunos() {
     var pageAlunos =
         responseSpec
@@ -539,7 +534,7 @@ public class AlunoStepDefs {
     alunoRepository.save(aluno3);
   }
 
-  @Quando("eu faco uma requisicao GET para alunos com parametros de listagem invalidos")
+  @Quando("eu procuro os alunos com parametros de listagem invalidos")
   public void requisicaoTodosOsAlunos_ComParametrosInvalidos_Erro500() {
     responseSpec =
         webTestClient
@@ -554,7 +549,7 @@ public class AlunoStepDefs {
             .exchange();
   }
 
-  @Entao("retorne erro 400")
+  @Entao("retorne erro de formatação")
   public void respostaTodosOsAlunos_ComParametrosInvalidos_Erro400() {
     responseSpec.expectStatus().isBadRequest();
     System.out.println("Erro 400 - Parametros inválidos");
@@ -565,17 +560,18 @@ public class AlunoStepDefs {
     System.out.println("Aluno com ID: " + aluno.getId());
   }
 
-  @Quando("eu faco uma requisicao DEL para o id do aluno")
+  @Quando("eu tento deletar o aluno do id passado")
   public void requisicaoDeletarAluno_204() {
     responseSpec = webTestClient.delete().uri("/alunos/{id}", aluno.getId()).exchange();
   }
 
-  @E("eu faco uma requisicao GET para aluno atraves do id novamente")
+  @E("quando eu tentar procurar o aluno atraves do id novamente")
   public void novarequisicaoDeletarAluno_204() {
     responseSpec = webTestClient.get().uri("/alunos/{id}", aluno.getId()).exchange();
   }
 
-  @Entao("e tem que retornar 404")
+  @Entao(
+      "como ele não deve mais existir no banco tem que retornar que nao conseguiu encontrar o recurso solicitado")
   public void respostaDeletarAluno_204() {
     responseSpec.expectStatus().isNotFound();
   }
@@ -585,15 +581,10 @@ public class AlunoStepDefs {
     System.out.println("Aluno com ID: " + alunoIdInexistente.getId());
   }
 
-  @Quando("eu faco uma requisicao DEL para o id inexistente do aluno")
+  @Quando("eu tento deletar o aluno com o id inexistente")
   public void requisicaoDeletarAluno_Erro404() {
     responseSpec =
         webTestClient.delete().uri("/alunos/{id}", alunoIdInexistente.getId()).exchange();
-  }
-
-  @E("eu faco uma nova requisicao GET para aluno atraves do id inexistente novamente")
-  public void novarequisicaoDeletarAluno_Erro404() {
-    responseSpec = webTestClient.get().uri("/alunos/{id}", alunoIdInexistente.getId()).exchange();
   }
 
   @Dado("que o aluno esteja no banco de dados e eu passe o id do aluno e novos dados")
@@ -620,7 +611,7 @@ public class AlunoStepDefs {
     System.out.println("ID do Aluno obtido da resposta: " + alunoCriado.getId());
   }
 
-  @Quando("eu faco uma requisicao PATCH para o id do aluno")
+  @Quando("eu tento atualizar o aluno passado")
   public void requisicaoAlterarAluno_Retornar204() {
     String novoNome = gerarNomeAleatorio();
     String novoSobrenome = gerarNomeAleatorio();
@@ -648,7 +639,7 @@ public class AlunoStepDefs {
     Assertions.assertNotNull(alunoDto);
   }
 
-  @Entao("e tem que retornar 204")
+  @Entao("retonar solicitação com sucesso")
   public void respostaAlterarAluno_Retornar204() {
     AlunoDto alunoComNovosDadosEsperados = integrationTestsContext.getAlunoRecuperadoDoBanco();
     Assertions.assertNotNull(alunoComNovosDadosEsperados, "Dados esperados não encontrados.");
@@ -665,6 +656,11 @@ public class AlunoStepDefs {
             .getResponseBody();
     ;
     Assertions.assertNotNull(alunoDoBancoAposPatch, "Aluno não encontrado após o PATCH.");
+
+    Assertions.assertEquals(
+        alunoComNovosDadosEsperados.getSobrenome(),
+        alunoDoBancoAposPatch.getSobrenome(),
+        "O sobrenome não foi atualizado corretamente.");
   }
 
   @Dado("que eu passe um id inexistente do aluno e novos dados")
@@ -672,7 +668,7 @@ public class AlunoStepDefs {
     System.out.println("Aluno com id:  " + alunoIdInexistente);
   }
 
-  @Quando("eu faco  uma requisicao PATCH para o id do aluno inexistente")
+  @Quando("eu tento atualizar o aluno com id inexistente")
   public void requisicaoAlterarAluno_Retornar404() {
     String novoNome = gerarNomeAleatorio();
     String novoSobrenome = gerarNomeAleatorio();
