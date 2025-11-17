@@ -7,7 +7,6 @@ import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.models.Aluno;
 import java.time.LocalDate;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -15,36 +14,14 @@ import org.springframework.data.domain.PageRequest;
 
 class AlunoMapperTest {
 
-  AlunoMapper alunoMapper = AlunoMapper.INSTANCE;
-
-  private Aluno aluno =
-      new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
-  private AlunoDto alunoDto = new AlunoDto();
-  private Aluno alunoTarget;
-  private Aluno alunoService;
-
-  @BeforeEach
-  void setup() {
+  @Test
+  void mapearParaAluno() {
+    AlunoDto alunoDto = new AlunoDto();
     alunoDto.setNome("Karine");
     alunoDto.setSobrenome("Ferreira");
     alunoDto.setGenero(Genero.FEMININO);
     alunoDto.setDataNascimento(LocalDate.now().minusYears(4L));
 
-    alunoTarget = new Aluno(1L, "Nome", Genero.MASCULINO, LocalDate.now());
-    alunoTarget.setNomeCompleto("Jose William");
-    alunoTarget.setGenero(Genero.MASCULINO);
-    alunoTarget.setId(1L);
-    alunoTarget.setDataNascimento(LocalDate.now().minusYears(4L));
-
-    alunoService = new Aluno(1L, "Nome", Genero.MASCULINO, LocalDate.now());
-    alunoService.setNomeCompleto("Jose Ferreira");
-    alunoService.setGenero(Genero.MASCULINO);
-    alunoService.setId(99L);
-    alunoService.setDataNascimento(null);
-  }
-
-  @Test
-  void mapearParaAluno() {
     String nomeCompleto = "Karine Ferreira";
     Aluno aluno1 = AlunoMapper.INSTANCE.mapearParaAluno(alunoDto);
     assertNotNull(aluno1, "Aluno não pode ser nulo");
@@ -55,6 +32,7 @@ class AlunoMapperTest {
 
   @Test
   void mapearParaAlunoDto() {
+    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
     AlunoDto aluno1 = AlunoMapper.INSTANCE.mapearParaAlunoDto(aluno);
     assertNotNull(aluno1, "Aluno não pode ser nulo");
     assertEquals("Karine", aluno1.getNome());
@@ -65,6 +43,8 @@ class AlunoMapperTest {
 
   @Test
   void mapearParaAlunoDtoPage() {
+    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+
     PageRequest pagina = PageRequest.of(0, 2);
     Aluno aluno1 = new Aluno(1L, "Jose William", Genero.MASCULINO, LocalDate.now().minusYears(4L));
 
@@ -88,6 +68,10 @@ class AlunoMapperTest {
 
   @Test
   void merge() {
+    Aluno alunoService = new Aluno(99L, "Jose Ferreira", Genero.MASCULINO, null);
+
+    Aluno alunoTarget =
+        new Aluno(1L, "Jose William", Genero.MASCULINO, LocalDate.now().minusYears(4L));
     AlunoMapper.INSTANCE.merge(alunoService, alunoTarget);
 
     assertEquals(1L, alunoTarget.getId());

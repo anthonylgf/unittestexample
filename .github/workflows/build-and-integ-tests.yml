@@ -1,4 +1,4 @@
-name: Build and Run Integ Tests
+name: Build and Run Testes Integrados
 
 on: [pull_request]
 
@@ -17,8 +17,6 @@ jobs:
         with:
           distribution: 'corretto'
           java-version: '21'
-      - name: Build and run unit tests and
-        run: mvn com.spotify.fmt:fmt-maven-plugin:format
       - name: Initialize Docker Infrastructure
         run: docker compose up --build -d
       - name: Run the cucumber test

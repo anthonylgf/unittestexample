@@ -39,11 +39,9 @@ class AlunoServiceTest {
   @Mock private ApplicationProperties applicationProperties;
   @Mock private DateUtils dateUtils;
 
-  private Aluno aluno =
-      new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
-
   @Test
   void salvar_ComAlunoValido_RetornarAlunoSalvo() {
+    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
     aluno.setId(1L);
     when(applicationProperties.getMaximoIdade()).thenReturn(10);
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
@@ -61,7 +59,7 @@ class AlunoServiceTest {
 
   @Test
   void salvar_ComIdadeMenorQueMinima_RetornarIdadeInvalidaException() {
-    aluno.setId(1L);
+    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
     when(applicationProperties.getMaximoIdade()).thenReturn(10);
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
@@ -74,7 +72,7 @@ class AlunoServiceTest {
 
   @Test
   void salvar_ComIdadeMaiorQueMaxima_RetornarIdadeInvalidaException() {
-    aluno.setId(1L);
+    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
     when(applicationProperties.getMaximoIdade()).thenReturn(10);
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
@@ -87,7 +85,7 @@ class AlunoServiceTest {
 
   @Test
   void salvar_ComNomeRepetido_RetornarAlunoExisteMesmoNomeException() {
-    aluno.setId(1L);
+    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
     when(applicationProperties.getMaximoIdade()).thenReturn(10);
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
@@ -102,6 +100,7 @@ class AlunoServiceTest {
 
   @Test
   void buscarPorId_ComIdExistente_RetornarAluno() {
+    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
     when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
 
     Aluno alunoId = alunoService.buscarPorId(1L);
@@ -144,6 +143,8 @@ class AlunoServiceTest {
 
   @Test
   void deletarAluno_ComIdExistente_SemRetorno() {
+    Aluno aluno =
+        new Aluno(null, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
     Long alunoId = 1L;
     when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
 
@@ -154,6 +155,8 @@ class AlunoServiceTest {
 
   @Test
   void deletarAluno_ComIdInexistente_RetornarAlunoNaoEncontradoException() {
+    Aluno aluno =
+        new Aluno(null, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
     Long alunoId = 99L;
     when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
 

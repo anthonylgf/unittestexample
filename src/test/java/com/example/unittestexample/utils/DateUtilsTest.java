@@ -10,13 +10,10 @@ class DateUtilsTest {
 
   private DateUtils dateUtils = Mockito.spy(new DateUtils());
   private final LocalDate dataAtual = LocalDate.of(2025, 10, 21);
-  private final LocalDate datePassou = LocalDate.of(2006, 6, 18);
-  private final LocalDate dateProxima = LocalDate.of(2006, 10, 22);
-  private final LocalDate dateNoDia = LocalDate.of(2006, 10, 21);
-  private final LocalDate dataFutura = LocalDate.of(2026, 10, 22);
 
   @Test
   void diferencaEmAnosDataAtual_AniversarioJaPassou() {
+    LocalDate datePassou = LocalDate.of(2006, 6, 18);
     Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
     int idade = dateUtils.diferencaEmAnosDataAtual(datePassou);
     assertEquals(19, idade);
@@ -24,6 +21,7 @@ class DateUtilsTest {
 
   @Test
   void diferencaEmAnosDataAtual_AniversarioProximo() {
+    LocalDate dateProxima = LocalDate.of(2006, 10, 22);
     Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
     int idade = dateUtils.diferencaEmAnosDataAtual(dateProxima);
     assertEquals(18, idade);
@@ -31,6 +29,7 @@ class DateUtilsTest {
 
   @Test
   void diferencaEmAnosDataAtual_AniversarioNoDia() {
+    LocalDate dateNoDia = LocalDate.of(2006, 10, 21);
     Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
     int idade = dateUtils.diferencaEmAnosDataAtual(dateNoDia);
     assertEquals(19, idade);
@@ -38,6 +37,7 @@ class DateUtilsTest {
 
   @Test
   void diferencaEmAnosDataAtual_AniversarioFuturo() {
+    LocalDate dataFutura = LocalDate.of(2026, 10, 22);
     Mockito.when(dateUtils.dataAtual()).thenReturn(dataAtual);
     int idade = dateUtils.diferencaEmAnosDataAtual(dataFutura);
     assertEquals(-1, idade);
