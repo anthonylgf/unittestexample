@@ -17,12 +17,12 @@ public final class AlunoSpecificationFactory {
 
   public static Specification<Aluno> dataNascimentoMaiorIgualA(LocalDate dataNascimento) {
     return (root, query, criteriaBuilder) ->
-        criteriaBuilder.greaterThanOrEqualTo(root.get("data_nascimento"), dataNascimento);
+        criteriaBuilder.greaterThanOrEqualTo(root.get("dataNascimento"), dataNascimento);
   }
 
   public static Specification<Aluno> dataNascimentoMenorIgualA(LocalDate dataNascimento) {
     return (root, query, criteriaBuilder) ->
-        criteriaBuilder.lessThanOrEqualTo(root.get("data_nascimento"), dataNascimento);
+        criteriaBuilder.lessThanOrEqualTo(root.get("dataNascimento"), dataNascimento);
   }
 
   public static Specification<Aluno> generoIgualA(Genero genero) {

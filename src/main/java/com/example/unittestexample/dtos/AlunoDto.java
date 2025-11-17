@@ -6,9 +6,13 @@ import com.example.unittestexample.enums.Genero;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AlunoDto {
 
   @Null(message = "O campo de id deve ser nulo nas requisicoes")
