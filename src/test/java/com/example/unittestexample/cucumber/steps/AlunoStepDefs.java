@@ -654,15 +654,16 @@ public class AlunoStepDefs {
     Assertions.assertNotNull(alunoComNovosDadosEsperados, "Dados esperados não encontrados.");
 
     AlunoDto alunoDoBancoAposPatch =
-            webTestClient
-                    .get()
-                    .uri("/alunos/{id}", alunoComNovosDadosEsperados.getId())
-                    .exchange()
-                    .expectStatus()
-                    .isOk()
-                    .expectBody(AlunoDto.class)
-                    .returnResult()
-                    .getResponseBody();;
+        webTestClient
+            .get()
+            .uri("/alunos/{id}", alunoComNovosDadosEsperados.getId())
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(AlunoDto.class)
+            .returnResult()
+            .getResponseBody();
+    ;
     Assertions.assertNotNull(alunoDoBancoAposPatch, "Aluno não encontrado após o PATCH.");
   }
 
@@ -690,5 +691,4 @@ public class AlunoStepDefs {
             .bodyValue(alunoDto1)
             .exchange();
   }
-
 }
