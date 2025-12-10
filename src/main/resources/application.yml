@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: alunos
+  kafka:
+    bootstrap-servers: 'localhost:29092'
+    consumer:
+      group-id: unittestexample-aluno
+      auto-offset-reset: earliest
+
+
+unittestexample:
+  config:
+    kafka:
+      topics:
+        unittestexample-aluno: 'unittestexample.aluno'
+
+server:
+  port: 8083
