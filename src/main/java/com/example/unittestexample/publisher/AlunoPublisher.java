@@ -24,7 +24,7 @@ public class AlunoPublisher {
     try {
       kafkaTemplate.send(topicAluno, aluno.getId().toString(), aluno);
       log.info("Aluno enviado com sucesso");
-    } catch (Exception e){
+    } catch (Exception e) {
       log.error("Erro ao enviar o aluno", e.getMessage());
     }
   }

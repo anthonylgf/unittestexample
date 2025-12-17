@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component("alunoPublisher")
 @Profile("no-kafka-test")
 public class AlunoNoPublisher {
-    public void sendAluno(Aluno aluno) {
-        log.info("ANULADO: O envio de Kafka para o Aluno ID {} foi interceptado.", aluno.getId());
-    }
+  public void sendAluno(Aluno aluno) {
+    log.info("ANULADO: O envio de Kafka para o Aluno ID {} foi interceptado.", aluno.getId());
+  }
 }

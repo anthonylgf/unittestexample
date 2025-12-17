@@ -1,6 +1,5 @@
 package com.example.unittestexample.cucumber.configuration;
 
-import com.example.unittestexample.configs.KafkaConfig;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
@@ -19,7 +18,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @ContextConfiguration(
     initializers = ConfigDataApplicationContextInitializer.class,
     classes = CucumberConfiguration.SpringConfiguration.class)
-
 public class CucumberConfiguration {
 
   @Configuration

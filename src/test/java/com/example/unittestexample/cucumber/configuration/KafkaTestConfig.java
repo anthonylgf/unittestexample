@@ -7,9 +7,10 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 
 @Configuration
 @Profile("kafka-integration")
-@EmbeddedKafka(partitions = 1, topics = {"unittestexample.aluno"},
-        // Propriedades para garantir que o produtor e consumidor usem o broker embutido
-        brokerProperties = {"listeners=PLAINTEXT://localhost:9092", "port=9092"})
+@EmbeddedKafka(
+    partitions = 1,
+    topics = {"unittestexample.aluno"},
+    // Propriedades para garantir que o produtor e consumidor usem o broker embutido
+    brokerProperties = {"listeners=PLAINTEXT://localhost:9092", "port=9092"})
 @EnableKafka
-public class KafkaTestConfig {
-}
+public class KafkaTestConfig {}
