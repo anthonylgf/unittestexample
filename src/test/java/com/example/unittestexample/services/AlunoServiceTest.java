@@ -12,6 +12,7 @@ import com.example.unittestexample.exceptions.AlunoNaoEncontradoException;
 import com.example.unittestexample.exceptions.IdadeInvalidaException;
 import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
 import com.example.unittestexample.models.Aluno;
+import com.example.unittestexample.publisher.AlunoPublisher;
 import com.example.unittestexample.repositories.AlunoRepository;
 import com.example.unittestexample.utils.DateUtils;
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ class AlunoServiceTest {
   @Mock private AlunoRepository alunoRepository;
   @Mock private ApplicationProperties applicationProperties;
   @Mock private DateUtils dateUtils;
+  @Mock private AlunoPublisher alunoPublisher;
 
   @Test
   void salvar_ComAlunoValido_RetornarAlunoSalvo() {
@@ -49,6 +51,8 @@ class AlunoServiceTest {
     when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(4);
     when(alunoRepository.findByNomeCompleto(aluno.getNomeCompleto())).thenReturn(Optional.empty());
     when(alunoRepository.save(aluno)).thenReturn(aluno);
+
+    doNothing().when(alunoPublisher).sendAluno(aluno);
 
     Aluno alunoSalvo = alunoService.salvar(aluno);
 

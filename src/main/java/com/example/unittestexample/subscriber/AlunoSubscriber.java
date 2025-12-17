@@ -1,6 +1,5 @@
 package com.example.unittestexample.subscriber;
 
-
 import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.services.AlunoService;
@@ -16,20 +15,21 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AlunoSubscriber {
 
-    private final ObjectMapper mapper;
-    private final AlunoService service;
-    private final AlunoMapper alunoMapper;
+  private final ObjectMapper mapper;
+  private final AlunoService service;
+  private final AlunoMapper alunoMapper;
 
-    @KafkaListener(groupId = "unittestexample-aluno", topics = "${spring.kafka.consumer.group-id}")
-    public void listen(String json){
-        try {
-            var representatio = mapper.readValue(json, AlunoRepresentation.class);
-            Aluno aluno = alunoMapper.toAluno(representatio);
+  @KafkaListener(
+      groupId = "${spring.kafka.consumer.group-id}",
+      topics = "${unittestexample.config.kafka.topics.unittestexample-aluno}")
+  public void listen(String json) {
+    try {
+      var representatio = mapper.readValue(json, AlunoRepresentation.class);
+      Aluno aluno = alunoMapper.toAluno(representatio);
 
-
-        }catch (Exception e){
-            log.error("Erro: {}", e.getMessage() );
-        }
-        return ;
+    } catch (Exception e) {
+      log.error("Erro: {}", e.getMessage());
     }
+    return;
+  }
 }

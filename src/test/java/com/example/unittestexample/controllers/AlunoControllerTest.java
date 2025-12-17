@@ -15,6 +15,7 @@ import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.exceptions.AlunoExisteMesmoNomeException;
 import com.example.unittestexample.exceptions.AlunoNaoEncontradoException;
 import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
+import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.repositories.AlunoRepository;
 import com.example.unittestexample.services.AlunoService;

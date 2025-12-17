@@ -2,9 +2,18 @@ package com.example.unittestexample.cucumber;
 
 import static io.cucumber.junit.platform.engine.Constants.*;
 
+import com.example.unittestexample.configs.KafkaConfig;
 import org.junit.platform.suite.api.*;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test")
+@SpringBootTest
 @Suite
+@EnableAutoConfiguration(exclude = {KafkaAutoConfiguration.class})
 @IncludeEngines("cucumber")
 @SelectClasspathResource("cucumber-features")
 @ConfigurationParameters({
