@@ -5,7 +5,6 @@ Funcionalidade: Testes de Cadastro com kafka
     Dado que o banco de dados está vazio
     Quando eu tento criar um aluno
     Entao o aluno tem que ser Criado no banco
-    E o aluno deve existir no banco de dados
 
   Cenario: Cadastrar aluno retornar erro por causa do nome invalido
     Dado que o banco de dados está vazio

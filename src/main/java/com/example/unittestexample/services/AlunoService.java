@@ -90,12 +90,12 @@ public class AlunoService {
 
     if (nonNull(filters.getIdadeMinima())) {
       var dataNascimento = dateUtils.recuperarDataEmAnos(filters.getIdadeMinima());
-      specificationList.add(AlunoSpecificationFactory.dataNascimentoMaiorIgualA(dataNascimento));
+      specificationList.add(AlunoSpecificationFactory.dataNascimentoMenorIgualA(dataNascimento));
     }
 
     if (nonNull(filters.getIdadeMaxima())) {
       var dataNascimento = dateUtils.recuperarDataEmAnos(filters.getIdadeMaxima());
-      specificationList.add(AlunoSpecificationFactory.dataNascimentoMenorIgualA(dataNascimento));
+      specificationList.add(AlunoSpecificationFactory.dataNascimentoMaiorIgualA(dataNascimento));
     }
 
     if (nonNull(filters.getGenero())) {

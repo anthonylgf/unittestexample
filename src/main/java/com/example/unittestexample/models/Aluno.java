@@ -16,7 +16,7 @@ import lombok.*;
 @Getter
 @Setter
 @Entity
-@Table(name = "alunos")
+@Table(name = "ALUNO")
 public class Aluno {
 
   @Id @GeneratedValue private Long id;

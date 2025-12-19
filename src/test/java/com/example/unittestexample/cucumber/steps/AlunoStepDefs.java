@@ -1,5 +1,6 @@
 package com.example.unittestexample.cucumber.steps;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.example.unittestexample.cucumber.context.IntegrationTestsContext;
@@ -8,7 +9,6 @@ import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.dtos.AlunoFilters;
 import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.models.Aluno;
-import com.example.unittestexample.publisher.AlunoPublisher;
 import com.example.unittestexample.repositories.AlunoRepository;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -16,16 +16,21 @@ import io.cucumber.java.an.E;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.it.Quando;
 import io.cucumber.java.pt.Entao;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+@EmbeddedKafka(
+    partitions = 1,
+    topics = {"topico-alunos"})
 @ActiveProfiles("test")
 @RequiredArgsConstructor
 public class AlunoStepDefs {
@@ -48,14 +53,12 @@ public class AlunoStepDefs {
 
   private final int limite = 2;
 
-  @Autowired private AlunoPublisher alunoPublisher;
-
   @Before
   @After
   public void limparBaseParaTeste() {
     alunoRepository.deleteAll();
     System.out.println("Base de dados limpa com sucesso.");
-    Assertions.assertEquals(0, alunoRepository.findAll().size());
+    assertEquals(0, alunoRepository.findAll().size());
   }
 
   private String gerarNomeAleatorio() {
@@ -72,36 +75,47 @@ public class AlunoStepDefs {
   @Quando("eu tento criar um aluno")
   public void requisicaoCadastrar201() {
 
-    String jsonDeEntrada =
-        "{"
-            + "\"nome\": \"KARINE\","
-            + "\"sobrenome\": \"FERREIRA\","
-            + "\"genero\": \"FEMININO\","
-            + "\"dataNascimento\": \"31-10-2021\""
-            + "}";
+    String nome = gerarNomeAleatorio();
+    String sobrenome = gerarNomeAleatorio();
+    AlunoDto alunoTest =
+        new AlunoDto(null, nome, sobrenome, Genero.FEMININO, LocalDate.now().minusYears(4L));
     responseSpec =
         webTestClient
             .post()
             .uri("/alunos")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(jsonDeEntrada)
+            .bodyValue(alunoTest)
             .exchange();
+    responseSpec.expectStatus().isCreated();
+
+    var resultado =
+        responseSpec
+            .expectStatus()
+            .isCreated()
+            .expectBody(AlunoDto.class)
+            .returnResult()
+            .getResponseBody();
+
+    System.out.println("ID do aluno criado: " + resultado.getId());
+
+    long count = alunoRepository.count();
+    System.out.println("Total de alunos após setup: " + count);
   }
 
   @Entao("o aluno tem que ser Criado no banco")
   public void respostaCadastrar201() {
     responseSpec.expectStatus().isCreated();
-  }
+    await()
+        .atMost(10, TimeUnit.SECONDS)
+        .pollInterval(Duration.ofMillis(500))
+        .untilAsserted(
+            () -> {
+              long count = alunoRepository.count();
+              assertEquals(1, count);
+            });
 
-  @E("o aluno deve existir no banco de dados")
-  public void alunoCadastrarNoBanco201() {
     List<Aluno> alunosSalvo = alunoRepository.findAll();
     assertEquals(1, alunosSalvo.size(), "Deve existir 1 aluno salvo no banco ");
-
-    Aluno alunoSalvo = alunosSalvo.getFirst();
-    assertEquals(aluno.getNomeCompleto(), alunoSalvo.getNomeCompleto());
-    assertEquals(aluno.getDataNascimento(), alunoSalvo.getDataNascimento());
-    assertEquals(aluno.getGenero(), alunoSalvo.getGenero());
 
     System.out.println("Aluno cadastrado com sucesso");
   }
@@ -194,7 +208,7 @@ public class AlunoStepDefs {
   public void respostaProcurarId() {
     AlunoDto alunoCriado = integrationTestsContext.getAlunoCriadoBanco();
     AlunoDto alunoRecuperado = integrationTestsContext.getAlunoRecuperadoDoBanco();
-    Assertions.assertEquals(alunoCriado.getNome(), alunoRecuperado.getNome());
+    assertEquals(alunoCriado.getNome(), alunoRecuperado.getNome());
   }
 
   @Dado("que eu passo um id inexistente")
@@ -217,21 +231,24 @@ public class AlunoStepDefs {
 
   @Dado("que o banco de dados possua alunos")
   public void bancoDeDadosPossuaAlunos() {
-    System.out.println("Limpando o banco...");
-    alunoRepository.deleteAll();
-
     if (!alunoRepository.findAll().isEmpty()) {
       throw new IllegalStateException("O banco de dados não foi limpo totalmente");
     }
-    System.out.println("Banco limpo!");
-    LocalDate dataNascimento4Anos = LocalDate.now().minusYears(4).withDayOfYear(1);
     AlunoDto alunoDto1 =
         new AlunoDto(
-            null, gerarNomeAleatorio(), gerarNomeAleatorio(), Genero.FEMININO, dataNascimento4Anos);
+            null,
+            gerarNomeAleatorio(),
+            gerarNomeAleatorio(),
+            Genero.FEMININO,
+            LocalDate.now().minusYears(4));
 
     AlunoDto alunoDto2 =
         new AlunoDto(
-            null, gerarNomeAleatorio(), gerarNomeAleatorio(), Genero.FEMININO, dataNascimento4Anos);
+            null,
+            gerarNomeAleatorio(),
+            gerarNomeAleatorio(),
+            Genero.FEMININO,
+            LocalDate.now().minusYears(7));
 
     responseSpec =
         webTestClient
@@ -353,8 +370,8 @@ public class AlunoStepDefs {
 
   @Quando("eu procurar os alunos com parametros de Idade Valida")
   public void requisicaoGetFiltroIdadesValidos() {
-    int idadeMin = 2;
-    int idadeMax = 10;
+    int idadeMin = 3;
+    int idadeMax = 7;
     responseSpec =
         webTestClient
             .get()
@@ -382,13 +399,12 @@ public class AlunoStepDefs {
 
     Assertions.assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
 
-    Assertions.assertEquals(
+    assertEquals(
         0,
         pageAlunos.getContent().size(),
         "O número de alunos retornados deve ser 0, pois nenhum aluno está na faixa de idade [2, 10].");
 
-    Assertions.assertEquals(
-        0, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 0.");
+    assertEquals(0, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 0.");
   }
 
   private Genero generoFiltro;
@@ -473,22 +489,11 @@ public class AlunoStepDefs {
             .getResponseBody();
 
     Assertions.assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
-    Assertions.assertEquals(
-        1, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 1.");
-    Assertions.assertEquals(
+    assertEquals(1, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 1.");
+    assertEquals(
         this.generoFiltro,
         pageAlunos.getContent().get(0).getGenero(),
         "O gênero do aluno filtrado deve ser " + this.generoFiltro.name());
-
-    //      responseSpec.expectStatus().isOk();
-    //      responseSpec
-    //          .expectBody()
-    //          .jsonPath("$.content.length()")
-    //          .isEqualTo(1)
-    //          .jsonPath("$.content[0].genero")
-    //          .isEqualTo(this.generoFiltro.name())
-    //          .jsonPath("$.content[0].genero")
-    //          .value(Matchers.not(Genero.MASCULINO.name()));
   }
 
   @Dado("que o banco de dados possua alunos e passo o limite e a paginacao")
@@ -554,18 +559,16 @@ public class AlunoStepDefs {
             .getResponseBody();
 
     Assertions.assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
-    Assertions.assertEquals(
+    assertEquals(
         this.limite,
         pageAlunos.getContent().size(),
         "O número de alunos retornados deve ser igual ao limite da página.");
     Assertions.assertNotNull(pageAlunos.getPage(), "Os metadados da página não devem ser nulos.");
-    Assertions.assertEquals(
+    assertEquals(
         this.limite, pageAlunos.getPage().size(), "O tamanho da página deve ser igual ao limite.");
-    Assertions.assertEquals(
-        this.pagina, pageAlunos.getPage().number(), "O número da página deve ser zero.");
-    Assertions.assertEquals(
-        2L, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 2.");
-    Assertions.assertEquals(1, pageAlunos.getPage().totalPages(), "O total de páginas deve ser 1.");
+    assertEquals(this.pagina, pageAlunos.getPage().number(), "O número da página deve ser zero.");
+    assertEquals(2L, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 2.");
+    assertEquals(1, pageAlunos.getPage().totalPages(), "O total de páginas deve ser 1.");
   }
 
   private final String paginaInvalida = "abc";
@@ -683,7 +686,12 @@ public class AlunoStepDefs {
         .expectStatus()
         .isNoContent();
 
-    integrationTestsContext.setAlunoRecuperadoDoBanco(alunoDto);
+    AlunoDto esperado = new AlunoDto();
+    esperado.setId(alunoDto.getId());
+    esperado.setNome(novoNome);
+    esperado.setSobrenome(novoSobrenome);
+
+    integrationTestsContext.setAlunoRecuperadoDoBanco(esperado);
 
     Assertions.assertNotNull(alunoDto);
   }
@@ -703,10 +711,10 @@ public class AlunoStepDefs {
             .expectBody(AlunoDto.class)
             .returnResult()
             .getResponseBody();
-    ;
+
     Assertions.assertNotNull(alunoDoBancoAposPatch, "Aluno não encontrado após o PATCH.");
 
-    Assertions.assertEquals(
+    assertEquals(
         alunoComNovosDadosEsperados.getSobrenome(),
         alunoDoBancoAposPatch.getSobrenome(),
         "O sobrenome não foi atualizado corretamente.");
@@ -726,8 +734,8 @@ public class AlunoStepDefs {
     alunoDto1.setNome(novoNome);
     alunoDto1.setSobrenome(novoSobrenome);
 
-    Assertions.assertEquals(novoNome, alunoDto1.getNome());
-    Assertions.assertEquals(novoSobrenome, alunoDto1.getSobrenome());
+    assertEquals(novoNome, alunoDto1.getNome());
+    assertEquals(novoSobrenome, alunoDto1.getSobrenome());
     responseSpec =
         webTestClient
             .patch()

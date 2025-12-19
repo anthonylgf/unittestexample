@@ -1,15 +1,16 @@
 # language: pt
 @spring.profiles.active=test,no-kafka-test
 Funcionalidade: Testes de Busca, Listagem, Alteração e Deleção sem kafka
- Cenario: Procurar aluno pelo id
-     Dado que o banco de dados não está vazio
-     Quando eu tendo procurar um aluno atraves do id
-     Entao retorne o aluno procurado
 
- Cenario: Procurar aluno pelo id retornar erro 404
-     Dado que eu passo um id inexistente
-     Quando eu tendo procurar um aluno com id inexistente
-     Entao retorna que nao conseguiu encontrar o recurso solicitado
+  Cenario: Procurar aluno pelo id
+    Dado que o banco de dados não está vazio
+    Quando eu tendo procurar um aluno atraves do id
+    Entao retorne o aluno procurado
+
+  Cenario: Procurar aluno pelo id retornar erro 404
+    Dado que eu passo um id inexistente
+    Quando eu tendo procurar um aluno com id inexistente
+    Entao retorna que nao conseguiu encontrar o recurso solicitado
 
   Cenário: Filtro de idade
     Dado que o banco de dados possua alunos
@@ -38,33 +39,33 @@ Funcionalidade: Testes de Busca, Listagem, Alteração e Deleção sem kafka
     Quando eu procurar os alunos
     Então retorne uma lista somente com os alunos que estao dentro do que pediram
 
- Cenario: Listar alunos
-     Dado que o banco de dados possua alunos e passo o limite e a paginacao
-     Quando eu procurar os alunos
-     Entao retorne uma lista somente com os alunos que estao dentro do que pediram
+  Cenario: Listar alunos
+    Dado que o banco de dados possua alunos e passo o limite e a paginacao
+    Quando eu procurar os alunos
+    Entao retorne uma lista somente com os alunos que estao dentro do que pediram
 
- Cenario: Listar alunos com parametros de listagem invalidos
-     Dado que eu passe alunos no banco
-     Quando eu procuro os alunos com parametros de listagem invalidos
-     Entao retorne erro de formatação
+  Cenario: Listar alunos com parametros de listagem invalidos
+    Dado que eu passe alunos no banco
+    Quando eu procuro os alunos com parametros de listagem invalidos
+    Entao retorne erro de formatação
 
- Cenario: Deletar aluno pelo id
-     Dado que eu passe o id do aluno
-     Quando eu tento deletar o aluno do id passado
-     E quando eu tentar procurar o aluno atraves do id novamente
-     Entao como ele não deve mais existir no banco tem que retornar que nao conseguiu encontrar o recurso solicitado
+  Cenario: Deletar aluno pelo id
+    Dado que eu passe o id do aluno
+    Quando eu tento deletar o aluno do id passado
+    E quando eu tentar procurar o aluno atraves do id novamente
+    Entao como ele não deve mais existir no banco tem que retornar que nao conseguiu encontrar o recurso solicitado
 
- Cenario: Deletar aluno pelo id Inexistente
-     Dado que eu passe um id inexistente do aluno
-     Quando eu tento deletar o aluno com o id inexistente
-     Entao retorna que nao conseguiu encontrar o recurso solicitado
+  Cenario: Deletar aluno pelo id Inexistente
+    Dado que eu passe um id inexistente do aluno
+    Quando eu tento deletar o aluno com o id inexistente
+    Entao retorna que nao conseguiu encontrar o recurso solicitado
 
   Cenario: Alterar aluno pelo id
-     Dado que o aluno esteja no banco de dados e eu passe o id do aluno e novos dados
-     Quando eu tento atualizar o aluno passado
-     Entao retonar solicitação com sucesso
+    Dado que o aluno esteja no banco de dados e eu passe o id do aluno e novos dados
+    Quando eu tento atualizar o aluno passado
+    Entao retonar solicitação com sucesso
 
- Cenario: Alterar aluno pelo id inexistente
-     Dado que eu passe um id inexistente do aluno e novos dados
-     Quando eu tento atualizar o aluno com id inexistente
-     Entao retorna que nao conseguiu encontrar o recurso solicitado
+  Cenario: Alterar aluno pelo id inexistente
+    Dado que eu passe um id inexistente do aluno e novos dados
+    Quando eu tento atualizar o aluno com id inexistente
+    Entao retorna que nao conseguiu encontrar o recurso solicitado
