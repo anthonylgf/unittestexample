@@ -29,7 +29,7 @@ public class CucumberConfiguration {
     @Bean
     @Primary
     public WebTestClient getWebTestClient() {
-      return WebTestClient.bindToServer().baseUrl("http://localhost:8080").build();
+      return WebTestClient.bindToServer().baseUrl("http://localhost:8083").build();
     }
   }
 }

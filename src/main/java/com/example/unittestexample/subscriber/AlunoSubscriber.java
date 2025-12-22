@@ -21,7 +21,8 @@ public class AlunoSubscriber {
 
   @KafkaListener(
       groupId = "${spring.kafka.consumer.group-id}",
-      topics = "${unittestexample.config.kafka.topics.unittestexample-aluno}")
+      topics = "${unittestexample.config.kafka.topics.unittestexample-aluno}",
+      containerFactory = "kafkaListenerContainerFactory")
   public void listen(String json) {
     try {
       var representatio = mapper.readValue(json, AlunoRepresentation.class);
