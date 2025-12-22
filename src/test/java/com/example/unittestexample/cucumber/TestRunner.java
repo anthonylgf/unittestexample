@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("test")
 @SpringBootTest
 @Suite
 @EnableAutoConfiguration(exclude = {KafkaAutoConfiguration.class})

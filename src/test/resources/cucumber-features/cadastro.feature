@@ -1,5 +1,4 @@
 # language: pt
-@spring.profiles.active=test
 Funcionalidade: Testes de Cadastro com kafka
   Cenario: Cadastrar aluno e retornar sucesso
     Dado que o banco de dados está vazio

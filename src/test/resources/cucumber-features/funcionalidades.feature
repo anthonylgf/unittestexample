@@ -1,5 +1,4 @@
 # language: pt
-@spring.profiles.active=test,no-kafka-test
 Funcionalidade: Testes de Busca, Listagem, Alteração e Deleção sem kafka
 
   Cenario: Procurar aluno pelo id
