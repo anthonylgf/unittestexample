@@ -404,7 +404,7 @@ public class AlunoStepDefs {
         pageAlunos.getContent().size(),
         "O número de alunos retornados deve ser 0, pois nenhum aluno está na faixa de idade [2, 10].");
 
-    assertEquals(0, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 0.");
+    assertEquals(0, pageAlunos.getPage().getTotalElements(), "O total de elementos deve ser 0.");
   }
 
   private Genero generoFiltro;
@@ -489,7 +489,7 @@ public class AlunoStepDefs {
             .getResponseBody();
 
     Assertions.assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
-    assertEquals(1, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 1.");
+    assertEquals(1, pageAlunos.getPage().getTotalElements(), "O total de elementos deve ser 1.");
     assertEquals(
         this.generoFiltro,
         pageAlunos.getContent().get(0).getGenero(),
@@ -565,10 +565,13 @@ public class AlunoStepDefs {
         "O número de alunos retornados deve ser igual ao limite da página.");
     Assertions.assertNotNull(pageAlunos.getPage(), "Os metadados da página não devem ser nulos.");
     assertEquals(
-        this.limite, pageAlunos.getPage().size(), "O tamanho da página deve ser igual ao limite.");
-    assertEquals(this.pagina, pageAlunos.getPage().number(), "O número da página deve ser zero.");
-    assertEquals(2L, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 2.");
-    assertEquals(1, pageAlunos.getPage().totalPages(), "O total de páginas deve ser 1.");
+        this.limite,
+        pageAlunos.getPage().getSize(),
+        "O tamanho da página deve ser igual ao limite.");
+    assertEquals(
+        this.pagina, pageAlunos.getPage().getNumber(), "O número da página deve ser zero.");
+    assertEquals(2L, pageAlunos.getPage().getTotalElements(), "O total de elementos deve ser 2.");
+    assertEquals(1, pageAlunos.getPage().getTotalPages(), "O total de páginas deve ser 1.");
   }
 
   private final String paginaInvalida = "abc";

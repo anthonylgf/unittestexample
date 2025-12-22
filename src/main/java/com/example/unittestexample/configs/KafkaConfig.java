@@ -1,10 +1,5 @@
 package com.example.unittestexample.configs;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -64,17 +59,5 @@ public class KafkaConfig {
   public KafkaTemplate<String, Object> kafkaTemplate(
       ProducerFactory<String, Object> producerFactory) {
     return new KafkaTemplate<>(producerFactory);
-  }
-
-  @Bean
-  public ObjectMapper objectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-
-    mapper.registerModule(new Jdk8Module());
-    mapper.registerModule(new JavaTimeModule());
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-    return mapper;
   }
 }

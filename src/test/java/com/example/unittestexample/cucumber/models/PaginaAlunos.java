@@ -5,7 +5,6 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.web.PagedModel;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,7 +12,7 @@ import org.springframework.data.web.PagedModel;
 public class PaginaAlunos {
 
   private List<AlunoDto> content;
-  private PagedModel.PageMetadata page;
+  private PageMetadata page;
 
   @NoArgsConstructor
   @AllArgsConstructor
