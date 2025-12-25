@@ -107,8 +107,7 @@ public class AlunoStepDefs {
         .atMost(20, TimeUnit.SECONDS)
         .untilAsserted(
             () -> {
-              String mensagem =
-                  KafkaListenerConfig.mensagens.poll();
+              String mensagem = KafkaListenerConfig.mensagens.poll();
               assertNotNull(mensagem, "A mensagem ainda não chegou no Kafka");
               assertTrue(mensagem.contains("aluno"));
             });
