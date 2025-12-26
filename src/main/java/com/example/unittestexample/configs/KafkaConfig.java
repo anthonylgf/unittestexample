@@ -1,5 +1,6 @@
 package com.example.unittestexample.configs;
 
+import com.example.unittestexample.models.Aluno;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -27,20 +28,23 @@ public class KafkaConfig {
 
   @Bean
   @Primary
-  public ConsumerFactory<String, String> consumerFactory(final KafkaProperties kafkaProperties) {
+  public ConsumerFactory<String, Aluno> consumerFactory(final KafkaProperties kafkaProperties) {
     Map<String, Object> props = kafkaProperties.buildConsumerProperties();
     props.put(
         ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProducerProperties.getBootstrapServers());
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+    props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+    props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.example.unittestexample.models.Aluno");
+    props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
     return new DefaultKafkaConsumerFactory<>(props);
   }
 
   @Bean
   @Primary
-  public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(
-      ConsumerFactory<String, String> consumerFactory) {
-    ConcurrentKafkaListenerContainerFactory<String, String> listener =
+  public ConcurrentKafkaListenerContainerFactory<String, Aluno> kafkaListenerContainerFactory(
+      ConsumerFactory<String, Aluno> consumerFactory) {
+    ConcurrentKafkaListenerContainerFactory<String, Aluno> listener =
         new ConcurrentKafkaListenerContainerFactory<>();
     listener.setConsumerFactory(consumerFactory);
     return listener;
@@ -48,20 +52,20 @@ public class KafkaConfig {
 
   @Bean
   @Primary
-  public ProducerFactory<String, Object> producerFactory(final KafkaProperties kafkaProperties) {
+  public ProducerFactory<String, Aluno> producerFactory(final KafkaProperties kafkaProperties) {
     Map<String, Object> props = kafkaProperties.buildProducerProperties();
     props.put(
         ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProducerProperties.getBootstrapServers());
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-    props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, true);
+    props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
 
     return new DefaultKafkaProducerFactory<>(props);
   }
 
   @Bean
-  public KafkaTemplate<String, Object> kafkaTemplate(
-      ProducerFactory<String, Object> producerFactory) {
+  public KafkaTemplate<String, Aluno> kafkaTemplate(
+      ProducerFactory<String, Aluno> producerFactory) {
     return new KafkaTemplate<>(producerFactory);
   }
 }

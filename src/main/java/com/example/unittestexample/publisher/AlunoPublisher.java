@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AlunoPublisher {
 
-  private final KafkaTemplate<String, Object> kafkaTemplate;
+  private final KafkaTemplate<String, Aluno> kafkaTemplate;
   private final KafkaTopicProperties kafkaProperties;
 
   public void sendAluno(Aluno aluno) {
