@@ -6,12 +6,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.unittestexample.cucumber.context.IntegrationTestsContext;
 import com.example.unittestexample.cucumber.models.PaginaAlunos;
+import com.example.unittestexample.cucumber.subscriber.AlunoSubscriber;
 import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.dtos.AlunoFilters;
 import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.repositories.AlunoRepository;
-import com.example.unittestexample.subscriber.AlunoSubscriber;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.an.E;
