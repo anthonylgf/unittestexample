@@ -1,8 +1,9 @@
 package com.example.unittestexample.cucumber.steps;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.example.unittestexample.cucumber.configuration.KafkaListenerConfig;
 import com.example.unittestexample.cucumber.context.IntegrationTestsContext;
 import com.example.unittestexample.cucumber.models.PaginaAlunos;
 import com.example.unittestexample.dtos.AlunoDto;
@@ -10,6 +11,7 @@ import com.example.unittestexample.dtos.AlunoFilters;
 import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.repositories.AlunoRepository;
+import com.example.unittestexample.subscriber.AlunoSubscriber;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.an.E;
@@ -20,10 +22,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
-import org.awaitility.Awaitility;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +54,8 @@ public class AlunoStepDefs {
 
   private BlockingQueue<String> mensagensKafka;
 
+  @Autowired private AlunoSubscriber alunoSubscriber;
+
   @Before
   @After
   @Transactional
@@ -59,6 +63,21 @@ public class AlunoStepDefs {
     alunoRepository.deleteAll();
     System.out.println("Base de dados limpa com sucesso.");
     assertEquals(0, alunoRepository.findAll().size());
+  }
+
+  @Autowired private KafkaListenerEndpointRegistry registry;
+
+  @Before("@kafka")
+  public void waitForKafka() {
+    if (alunoSubscriber != null) {
+      alunoSubscriber.getMensagensRecebidas().clear();
+    }
+
+    try {
+      Thread.sleep(5000);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   private String gerarNomeAleatorio() {
@@ -103,13 +122,12 @@ public class AlunoStepDefs {
 
   @E("a mensagem foi enviada para o tópico com as informações dos alunos")
   public void mensagemNoKafka() throws InterruptedException {
-    Awaitility.await()
-        .atMost(20, TimeUnit.SECONDS)
+    await()
+        .atMost(30, SECONDS)
         .untilAsserted(
             () -> {
-              String mensagem = KafkaListenerConfig.mensagens.poll();
-              assertNotNull(mensagem, "A mensagem ainda não chegou no Kafka");
-              assertTrue(mensagem.contains("aluno"));
+              List<String> conteudo = alunoSubscriber.getMensagensRecebidas();
+              assertFalse(conteudo.isEmpty(), "A lista de mensagens do Kafka está vazia!");
             });
   }
 

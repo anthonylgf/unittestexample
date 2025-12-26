@@ -7,17 +7,21 @@ import com.example.unittestexample.subscriber.representation.AlunoRepresentation
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Profile("!test")
 public class AlunoSubscriber {
 
   private final ObjectMapper mapper;
   private final AlunoService service;
   private final AlunoMapper alunoMapper;
+
+  private final java.util.List<String> mensagensRecebidas = new java.util.ArrayList<>();
 
   @KafkaListener(
       groupId = "${spring.kafka.consumer.group-id}",
@@ -31,6 +35,9 @@ public class AlunoSubscriber {
     } catch (Exception e) {
       log.error("Erro: {}", e.getMessage());
     }
-    return;
+  }
+
+  public java.util.List<String> getMensagensRecebidas() {
+    return mensagensRecebidas;
   }
 }

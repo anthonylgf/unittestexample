@@ -1,5 +1,6 @@
 # language: pt
 Funcionalidade: Testes de Cadastro com kafka
+  @kafka
   Cenario: Cadastrar aluno e retornar sucesso
     Dado que o banco de dados está vazio
     Quando eu tento criar um aluno

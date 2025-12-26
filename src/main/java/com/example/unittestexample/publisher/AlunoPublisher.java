@@ -1,6 +1,6 @@
 package com.example.unittestexample.publisher;
 
-import com.example.unittestexample.configs.KafkaTopicConfig;
+import com.example.unittestexample.configs.KafkaTopicProperties;
 import com.example.unittestexample.models.Aluno;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class AlunoPublisher {
 
   private final KafkaTemplate<String, Object> kafkaTemplate;
-  private final KafkaTopicConfig kafkaProperties;
+  private final KafkaTopicProperties kafkaProperties;
 
   public void sendAluno(Aluno aluno) {
     String topicAluno = kafkaProperties.getKafka().getTopics().getUnittestexampleAluno();

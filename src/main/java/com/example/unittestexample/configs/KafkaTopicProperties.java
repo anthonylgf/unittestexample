@@ -3,13 +3,11 @@ package com.example.unittestexample.configs;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-@ConfigurationProperties(prefix = "unittestexample.config.kafka")
-@EnableConfigurationProperties
+@ConfigurationProperties(prefix = "unittestexample.config")
 @Getter
 @Setter
-public class KafkaTopicConfig {
+public class KafkaTopicProperties {
 
   private Kafka kafka = new Kafka();
 
