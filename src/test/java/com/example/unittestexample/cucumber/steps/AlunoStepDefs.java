@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @ActiveProfiles("test")
 @RequiredArgsConstructor
+@SpringBootTest
 public class AlunoStepDefs {
 
   private final AlunoRepository alunoRepository;
@@ -69,15 +71,7 @@ public class AlunoStepDefs {
 
   @Before("@kafka")
   public void waitForKafka() {
-    if (alunoSubscriber != null) {
-      alunoSubscriber.getMensagensRecebidas().clear();
-    }
-
-    try {
-      Thread.sleep(5000);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
+    alunoSubscriber.getMensagensRecebidas().clear();
   }
 
   private String gerarNomeAleatorio() {
@@ -152,6 +146,15 @@ public class AlunoStepDefs {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(aluno400)
             .exchange();
+  }
+
+  @E("a mensagem não foi enviada para o tópico com as informações dos alunos")
+  public void mensagemNaoEnviadaNoKafka() throws InterruptedException {
+
+    Thread.sleep(2000);
+    assertTrue(
+        alunoSubscriber.getMensagensRecebidas().isEmpty(),
+        "Erro: Uma mensagem foi enviada para o Kafka, mas o cadastro deveria ter falhado!");
   }
 
   @Entao("a resposta deve ser um erro de formatação")
