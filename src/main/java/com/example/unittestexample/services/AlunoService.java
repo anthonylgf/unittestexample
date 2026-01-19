@@ -10,6 +10,7 @@ import com.example.unittestexample.exceptions.IdadeInvalidaException;
 import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
 import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.models.Aluno;
+import com.example.unittestexample.publisher.AlunoPublisher;
 import com.example.unittestexample.repositories.AlunoRepository;
 import com.example.unittestexample.repositories.AlunoSpecificationFactory;
 import com.example.unittestexample.utils.DateUtils;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +30,9 @@ public class AlunoService {
   private final AlunoRepository alunoRepository;
   private final ApplicationProperties applicationProperties;
   private final DateUtils dateUtils;
+  private final AlunoPublisher alunoPublisher;
 
+  @Transactional
   public Aluno salvar(Aluno aluno) {
     // Verificar se a idade do aluno eh valida
     int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
@@ -44,8 +48,11 @@ public class AlunoService {
     if (alunoMesmoNome.isPresent()) {
       throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
     }
+    Aluno alunoSalvo = alunoRepository.save(aluno);
 
-    return alunoRepository.save(aluno);
+    alunoPublisher.sendAluno(alunoSalvo);
+
+    return alunoSalvo;
   }
 
   public void atualizarAluno(Long id, Aluno aluno) {
@@ -83,12 +90,12 @@ public class AlunoService {
 
     if (nonNull(filters.getIdadeMinima())) {
       var dataNascimento = dateUtils.recuperarDataEmAnos(filters.getIdadeMinima());
-      specificationList.add(AlunoSpecificationFactory.dataNascimentoMaiorIgualA(dataNascimento));
+      specificationList.add(AlunoSpecificationFactory.dataNascimentoMenorIgualA(dataNascimento));
     }
 
     if (nonNull(filters.getIdadeMaxima())) {
       var dataNascimento = dateUtils.recuperarDataEmAnos(filters.getIdadeMaxima());
-      specificationList.add(AlunoSpecificationFactory.dataNascimentoMenorIgualA(dataNascimento));
+      specificationList.add(AlunoSpecificationFactory.dataNascimentoMaiorIgualA(dataNascimento));
     }
 
     if (nonNull(filters.getGenero())) {

@@ -1,8 +1,9 @@
 package com.example.unittestexample.cucumber.configuration;
 
+import com.example.unittestexample.UnittestexampleApplication;
 import io.cucumber.spring.CucumberContextConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +11,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-@EnableAutoConfiguration
+@SpringBootTest(
+    classes = UnittestexampleApplication.class,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @CucumberContextConfiguration
 @ContextConfiguration(
     initializers = ConfigDataApplicationContextInitializer.class,
@@ -24,7 +27,7 @@ public class CucumberConfiguration {
     @Bean
     @Primary
     public WebTestClient getWebTestClient() {
-      return WebTestClient.bindToServer().baseUrl("http://localhost:8080").build();
+      return WebTestClient.bindToServer().baseUrl("http://localhost:8083").build();
     }
   }
 }

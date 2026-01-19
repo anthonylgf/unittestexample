@@ -4,14 +4,17 @@ import static java.util.Objects.isNull;
 
 import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.models.Aluno;
+import com.example.unittestexample.subscriber.representation.AlunoRepresentation;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.Page;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface AlunoMapper {
 
   AlunoMapper INSTANCE = Mappers.getMapper(AlunoMapper.class);
+
+  Aluno toAluno(AlunoRepresentation representation);
 
   Aluno mapearParaAluno(AlunoDto alunoDto);
 

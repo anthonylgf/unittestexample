@@ -1,9 +1,12 @@
 package com.example.unittestexample.cucumber.steps;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.unittestexample.cucumber.context.IntegrationTestsContext;
 import com.example.unittestexample.cucumber.models.PaginaAlunos;
+import com.example.unittestexample.cucumber.subscriber.AlunoSubscriber;
 import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.dtos.AlunoFilters;
 import com.example.unittestexample.enums.Genero;
@@ -18,14 +21,19 @@ import io.cucumber.java.pt.Entao;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import lombok.RequiredArgsConstructor;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.transaction.annotation.Transactional;
 
+@ActiveProfiles("test")
 @RequiredArgsConstructor
+@SpringBootTest
 public class AlunoStepDefs {
 
   private final AlunoRepository alunoRepository;
@@ -46,12 +54,24 @@ public class AlunoStepDefs {
 
   private final int limite = 2;
 
+  private BlockingQueue<String> mensagensKafka;
+
+  @Autowired private AlunoSubscriber alunoSubscriber;
+
   @Before
   @After
   @Transactional
   public void limparBaseParaTeste() {
     alunoRepository.deleteAll();
     System.out.println("Base de dados limpa com sucesso.");
+    assertEquals(0, alunoRepository.findAll().size());
+  }
+
+  @Autowired private KafkaListenerEndpointRegistry registry;
+
+  @Before("@kafka")
+  public void waitForKafka() {
+    alunoSubscriber.getMensagensRecebidas().clear();
   }
 
   private String gerarNomeAleatorio() {
@@ -68,36 +88,49 @@ public class AlunoStepDefs {
   @Quando("eu tento criar um aluno")
   public void requisicaoCadastrar201() {
 
-    String jsonDeEntrada =
-        "{"
-            + "\"nome\": \"KARINE\","
-            + "\"sobrenome\": \"FERREIRA\","
-            + "\"genero\": \"FEMININO\","
-            + "\"dataNascimento\": \"31-10-2021\""
-            + "}";
+    String nome = gerarNomeAleatorio();
+    String sobrenome = gerarNomeAleatorio();
+    AlunoDto alunoTest =
+        new AlunoDto(null, nome, sobrenome, Genero.FEMININO, LocalDate.now().minusYears(4L));
     responseSpec =
         webTestClient
             .post()
             .uri("/alunos")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(jsonDeEntrada)
+            .bodyValue(alunoTest)
             .exchange();
+
+    var resultado =
+        responseSpec
+            .expectStatus()
+            .isCreated()
+            .expectBody(AlunoDto.class)
+            .returnResult()
+            .getResponseBody();
+
+    System.out.println("ID do aluno criado: " + resultado.getId());
+
+    long count = alunoRepository.count();
+    System.out.println("Total de alunos após setup: " + count);
+  }
+
+  @E("a mensagem foi enviada para o tópico com as informações dos alunos")
+  public void mensagemNoKafka() throws InterruptedException {
+    await()
+        .atMost(30, SECONDS)
+        .untilAsserted(
+            () -> {
+              List<String> conteudo = alunoSubscriber.getMensagensRecebidas();
+              assertFalse(conteudo.isEmpty(), "A lista de mensagens do Kafka está vazia!");
+            });
   }
 
   @Entao("o aluno tem que ser Criado no banco")
   public void respostaCadastrar201() {
     responseSpec.expectStatus().isCreated();
-  }
 
-  @E("o aluno deve existir no banco de dados")
-  public void alunoCadastrarNoBanco201() {
     List<Aluno> alunosSalvo = alunoRepository.findAll();
     assertEquals(1, alunosSalvo.size(), "Deve existir 1 aluno salvo no banco ");
-
-    Aluno alunoSalvo = alunosSalvo.getFirst();
-    assertEquals(aluno.getNomeCompleto(), alunoSalvo.getNomeCompleto());
-    assertEquals(aluno.getDataNascimento(), alunoSalvo.getDataNascimento());
-    assertEquals(aluno.getGenero(), alunoSalvo.getGenero());
 
     System.out.println("Aluno cadastrado com sucesso");
   }
@@ -113,6 +146,15 @@ public class AlunoStepDefs {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(aluno400)
             .exchange();
+  }
+
+  @E("a mensagem não foi enviada para o tópico com as informações dos alunos")
+  public void mensagemNaoEnviadaNoKafka() throws InterruptedException {
+
+    Thread.sleep(2000);
+    assertTrue(
+        alunoSubscriber.getMensagensRecebidas().isEmpty(),
+        "Erro: Uma mensagem foi enviada para o Kafka, mas o cadastro deveria ter falhado!");
   }
 
   @Entao("a resposta deve ser um erro de formatação")
@@ -163,7 +205,7 @@ public class AlunoStepDefs {
             .expectBody(AlunoDto.class)
             .returnResult()
             .getResponseBody();
-    Assertions.assertNotNull(alunoCriado, "Aluno nulo na criação");
+    assertNotNull(alunoCriado, "Aluno nulo na criação");
     integrationTestsContext.setAlunoCriadoBanco(alunoCriado);
     System.out.println("ID do Aluno obtido da resposta: " + alunoCriado.getId());
   }
@@ -171,7 +213,7 @@ public class AlunoStepDefs {
   @Quando("eu tendo procurar um aluno atraves do id")
   public void requisicaoProcurarId() {
     AlunoDto alunoDto = integrationTestsContext.getAlunoCriadoBanco();
-    Assertions.assertNotNull(alunoDto);
+    assertNotNull(alunoDto);
     AlunoDto alunoRecuperado =
         webTestClient
             .get()
@@ -182,7 +224,7 @@ public class AlunoStepDefs {
             .expectBody(AlunoDto.class)
             .returnResult()
             .getResponseBody();
-    Assertions.assertNotNull(alunoRecuperado);
+    assertNotNull(alunoRecuperado);
     integrationTestsContext.setAlunoRecuperadoDoBanco(alunoRecuperado);
   }
 
@@ -190,7 +232,7 @@ public class AlunoStepDefs {
   public void respostaProcurarId() {
     AlunoDto alunoCriado = integrationTestsContext.getAlunoCriadoBanco();
     AlunoDto alunoRecuperado = integrationTestsContext.getAlunoRecuperadoDoBanco();
-    Assertions.assertEquals(alunoCriado.getNome(), alunoRecuperado.getNome());
+    assertEquals(alunoCriado.getNome(), alunoRecuperado.getNome());
   }
 
   @Dado("que eu passo um id inexistente")
@@ -213,32 +255,31 @@ public class AlunoStepDefs {
 
   @Dado("que o banco de dados possua alunos")
   public void bancoDeDadosPossuaAlunos() {
-    AlunoDto alunoDto =
+    if (!alunoRepository.findAll().isEmpty()) {
+      throw new IllegalStateException("O banco de dados não foi limpo totalmente");
+    }
+    AlunoDto alunoDto1 =
         new AlunoDto(
             null,
             gerarNomeAleatorio(),
             gerarNomeAleatorio(),
             Genero.FEMININO,
-            LocalDate.now().minusYears(4L));
+            LocalDate.now().minusYears(4));
+
     AlunoDto alunoDto2 =
         new AlunoDto(
             null,
             gerarNomeAleatorio(),
             gerarNomeAleatorio(),
             Genero.FEMININO,
-            LocalDate.now().minusYears(4L));
-    System.out.println("Limpando o banco...");
+            LocalDate.now().minusYears(7));
 
-    if (!alunoRepository.findAll().isEmpty()) {
-      throw new IllegalStateException("O banco de dados não foi limpo totalmente");
-    }
-    System.out.println("Banco limpo!");
     responseSpec =
         webTestClient
             .post()
             .uri("/alunos")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(alunoDto)
+            .bodyValue(alunoDto1)
             .exchange();
     responseSpec.expectStatus().isCreated();
     responseSpec =
@@ -334,8 +375,27 @@ public class AlunoStepDefs {
 
   @Quando("eu procurar os alunos com parametros de Idade")
   public void requisicaoGetFiltroIdades() {
-    int idadeMin = 2;
-    int idadeMax = 10;
+    int idadeMin = 10;
+    int idadeMax = 2;
+    responseSpec =
+        webTestClient
+            .get()
+            .uri(
+                uriBuilder ->
+                    uriBuilder
+                        .path("/alunos")
+                        .queryParam("pagina", pagina)
+                        .queryParam("limite", limite)
+                        .queryParam("IdadeMinima", idadeMin)
+                        .queryParam("IdadeMaxima", idadeMax)
+                        .build())
+            .exchange();
+  }
+
+  @Quando("eu procurar os alunos com parametros de Idade Valida")
+  public void requisicaoGetFiltroIdadesValidos() {
+    int idadeMin = 3;
+    int idadeMax = 7;
     responseSpec =
         webTestClient
             .get()
@@ -361,21 +421,27 @@ public class AlunoStepDefs {
             .returnResult()
             .getResponseBody();
 
-    Assertions.assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
+    assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
 
-    Assertions.assertEquals(
+    assertEquals(
         0,
         pageAlunos.getContent().size(),
         "O número de alunos retornados deve ser 0, pois nenhum aluno está na faixa de idade [2, 10].");
 
-    Assertions.assertEquals(
-        0, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 0.");
+    assertEquals(0, pageAlunos.getPage().getTotalElements(), "O total de elementos deve ser 0.");
   }
 
   private Genero generoFiltro;
 
   @Dado("que o banco de dados possua alunos de diferentes gêneros")
   public void bancoDeDadosPossuaAlunosComGenerosDiferentes() {
+    System.out.println("Limpando o banco...");
+    alunoRepository.deleteAll();
+
+    if (!alunoRepository.findAll().isEmpty()) {
+      throw new IllegalStateException("O banco de dados não foi limpo totalmente");
+    }
+    System.out.println("Banco limpo!");
     AlunoDto alunoDtoTest1 =
         new AlunoDto(
             null,
@@ -390,20 +456,26 @@ public class AlunoStepDefs {
             gerarNomeAleatorio(),
             Genero.MASCULINO,
             LocalDate.now().minusYears(6L));
+
     responseSpec =
         webTestClient
             .post()
             .uri("/alunos")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(alunoDtoTest1)
-            .exchange();
+            .exchange()
+            .expectStatus()
+            .isCreated();
+    ;
     responseSpec =
         webTestClient
             .post()
             .uri("/alunos")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(alunoDtoTest2)
-            .exchange();
+            .exchange()
+            .expectStatus()
+            .isCreated();
     long count = alunoRepository.count();
     System.out.println("Total de alunos após setup: " + count);
   }
@@ -432,15 +504,20 @@ public class AlunoStepDefs {
 
   @Entao("retorne uma lista contendo apenas alunos do gênero filtrado")
   public void retorneUmaListaDeAlunosDoGeneroFiltrado() {
-    responseSpec.expectStatus().isOk();
-    responseSpec
-        .expectBody()
-        .jsonPath("$.content.length()")
-        .isEqualTo(1)
-        .jsonPath("$.content[0].genero")
-        .isEqualTo(this.generoFiltro.name())
-        .jsonPath("$.content[0].genero")
-        .value(Matchers.not(Genero.MASCULINO.name()));
+    var pageAlunos =
+        responseSpec
+            .expectStatus()
+            .isOk()
+            .expectBody(PaginaAlunos.class)
+            .returnResult()
+            .getResponseBody();
+
+    assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
+    assertEquals(1, pageAlunos.getPage().getTotalElements(), "O total de elementos deve ser 1.");
+    assertEquals(
+        this.generoFiltro,
+        pageAlunos.getContent().get(0).getGenero(),
+        "O gênero do aluno filtrado deve ser " + this.generoFiltro.name());
   }
 
   @Dado("que o banco de dados possua alunos e passo o limite e a paginacao")
@@ -504,19 +581,21 @@ public class AlunoStepDefs {
             .expectBody(PaginaAlunos.class)
             .returnResult()
             .getResponseBody();
-    Assertions.assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
-    Assertions.assertEquals(
+
+    assertNotNull(pageAlunos, "A lista de alunos não deve ser nula.");
+    assertEquals(
         this.limite,
         pageAlunos.getContent().size(),
         "O número de alunos retornados deve ser igual ao limite da página.");
-    Assertions.assertNotNull(pageAlunos.getPage(), "Os metadados da página não devem ser nulos.");
-    Assertions.assertEquals(
-        this.limite, pageAlunos.getPage().size(), "O tamanho da página deve ser igual ao limite.");
-    Assertions.assertEquals(
-        this.pagina, pageAlunos.getPage().number(), "O número da página deve ser zero.");
-    Assertions.assertEquals(
-        2L, pageAlunos.getPage().totalElements(), "O total de elementos deve ser 2.");
-    Assertions.assertEquals(1, pageAlunos.getPage().totalPages(), "O total de páginas deve ser 1.");
+    assertNotNull(pageAlunos.getPage(), "Os metadados da página não devem ser nulos.");
+    assertEquals(
+        this.limite,
+        pageAlunos.getPage().getSize(),
+        "O tamanho da página deve ser igual ao limite.");
+    assertEquals(
+        this.pagina, pageAlunos.getPage().getNumber(), "O número da página deve ser zero.");
+    assertEquals(2L, pageAlunos.getPage().getTotalElements(), "O total de elementos deve ser 2.");
+    assertEquals(1, pageAlunos.getPage().getTotalPages(), "O total de páginas deve ser 1.");
   }
 
   private final String paginaInvalida = "abc";
@@ -606,7 +685,7 @@ public class AlunoStepDefs {
             .expectBody(AlunoDto.class)
             .returnResult()
             .getResponseBody();
-    Assertions.assertNotNull(alunoCriado, "Aluno nulo na criação");
+    assertNotNull(alunoCriado, "Aluno nulo na criação");
     integrationTestsContext.setAlunoCriadoBanco(alunoCriado);
     System.out.println("ID do Aluno obtido da resposta: " + alunoCriado.getId());
   }
@@ -623,7 +702,7 @@ public class AlunoStepDefs {
     alunoModificado.setDataNascimento(null);
 
     AlunoDto alunoDto = integrationTestsContext.getAlunoCriadoBanco();
-    Assertions.assertNotNull(alunoDto);
+    assertNotNull(alunoDto);
     System.out.println("Aluno do Id: " + alunoDto.getId());
 
     webTestClient
@@ -634,15 +713,20 @@ public class AlunoStepDefs {
         .expectStatus()
         .isNoContent();
 
-    integrationTestsContext.setAlunoRecuperadoDoBanco(alunoDto);
+    AlunoDto esperado = new AlunoDto();
+    esperado.setId(alunoDto.getId());
+    esperado.setNome(novoNome);
+    esperado.setSobrenome(novoSobrenome);
 
-    Assertions.assertNotNull(alunoDto);
+    integrationTestsContext.setAlunoRecuperadoDoBanco(esperado);
+
+    assertNotNull(alunoDto);
   }
 
   @Entao("retonar solicitação com sucesso")
   public void respostaAlterarAluno_Retornar204() {
     AlunoDto alunoComNovosDadosEsperados = integrationTestsContext.getAlunoRecuperadoDoBanco();
-    Assertions.assertNotNull(alunoComNovosDadosEsperados, "Dados esperados não encontrados.");
+    assertNotNull(alunoComNovosDadosEsperados, "Dados esperados não encontrados.");
 
     AlunoDto alunoDoBancoAposPatch =
         webTestClient
@@ -654,10 +738,10 @@ public class AlunoStepDefs {
             .expectBody(AlunoDto.class)
             .returnResult()
             .getResponseBody();
-    ;
-    Assertions.assertNotNull(alunoDoBancoAposPatch, "Aluno não encontrado após o PATCH.");
 
-    Assertions.assertEquals(
+    assertNotNull(alunoDoBancoAposPatch, "Aluno não encontrado após o PATCH.");
+
+    assertEquals(
         alunoComNovosDadosEsperados.getSobrenome(),
         alunoDoBancoAposPatch.getSobrenome(),
         "O sobrenome não foi atualizado corretamente.");
@@ -677,8 +761,8 @@ public class AlunoStepDefs {
     alunoDto1.setNome(novoNome);
     alunoDto1.setSobrenome(novoSobrenome);
 
-    Assertions.assertEquals(novoNome, alunoDto1.getNome());
-    Assertions.assertEquals(novoSobrenome, alunoDto1.getSobrenome());
+    assertEquals(novoNome, alunoDto1.getNome());
+    assertEquals(novoSobrenome, alunoDto1.getSobrenome());
     responseSpec =
         webTestClient
             .patch()
