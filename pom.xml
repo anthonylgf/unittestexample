@@ -23,6 +23,7 @@
         <fmt-mavenplugin.version>2.27</fmt-mavenplugin.version>
         <spring-doc.version>2.8.12</spring-doc.version>
         <cucumber.version>7.18.0</cucumber.version>
+        <secrets.version>3.0.0</secrets.version>
 	</properties>
 
 	<dependencies>
@@ -137,7 +138,7 @@
         <dependency>
             <groupId>io.awspring.cloud</groupId>
             <artifactId>spring-cloud-aws-starter-secrets-manager</artifactId>
-            <version>3.0.0</version>
+            <version>${secrets.version}</version>
         </dependency>
     </dependencies>
 	<build>
