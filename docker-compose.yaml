@@ -10,7 +10,7 @@ services:
         condition: service_healthy
 
   database:
-     image: public.ecr.aws/docker/library/postgres:18-alpine
+     image: postgres:18-alpine
      restart: always
      user: postgres
      volumes:
@@ -59,8 +59,24 @@ services:
        KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
      ports:
        - "8090:8080"
+
+  localstack:
+      container_name: localstack_secrets
+      image: localstack/localstack
+      ports:
+        - "4566:4566"
+      environment:
+        - SERVICES=secretsmanager
+        - DEBUG=1
+        - DOCKER_HOST=unix:///var/run/docker.sock
+      volumes:
+        - "./docker/localstack/:/etc/localstack/init/ready.d/"
+        - "localstack-volume:/var/lib/localstack"
+        - "localstack-sock:/var/run/docker.sock"
 volumes:
    db-data:
+   localstack-volume:
+   localstack-sock:
 
 networks:
   unitestexampledefault:
