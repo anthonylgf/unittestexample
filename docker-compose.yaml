@@ -64,16 +64,19 @@ services:
       container_name: localstack_secrets
       image: localstack/localstack
       ports:
-        - "127.0.0.1:4566:4566"
+        - "4566:4566"
       environment:
         - SERVICES=secretsmanager
         - DEBUG=1
         - DOCKER_HOST=unix:///var/run/docker.sock
       volumes:
-        - "./volume:/var/lib/localstack"
-        - "/var/run/docker.sock:/var/run/docker.sock"
+        - "./docker/localstack/:/etc/localstack/init/ready.d/"
+        - "localstack-volume:/var/lib/localstack"
+        - "localstack-sock:/var/run/docker.sock"
 volumes:
    db-data:
+   localstack-volume:
+   localstack-sock:
 
 networks:
   unitestexampledefault:
