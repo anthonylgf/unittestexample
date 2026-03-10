@@ -76,6 +76,7 @@ public class AlunoService {
     alunoRepository.delete(alunoSalvo);
   }
 
+  @Cacheable(value = "alunos", key = "#id")
   public Aluno buscarPorId(Long id) {
     return alunoRepository.findById(id).orElseThrow(() -> new AlunoNaoEncontradoException(id));
   }
