@@ -1,11 +1,25 @@
 package com.example.unittestexample.configs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
 @Configuration
 @EnableConfigurationProperties(ApplicationProperties.class)
 @EnableSpringDataWebSupport(
     pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
-public class ApplicationConfiguration {}
+public class ApplicationConfiguration {
+
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+
+        return mapper;
+    }
+}

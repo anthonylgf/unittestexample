@@ -18,15 +18,12 @@ public class RedisConfig {
 
     ObjectMapper redisMapper = new ObjectMapper();
     redisMapper.registerModule(new JavaTimeModule());
-
-    // Esta é a "etiqueta" que permite ao Redis reconhecer o tipo Aluno
     redisMapper.activateDefaultTyping(
         redisMapper.getPolymorphicTypeValidator(),
         ObjectMapper.DefaultTyping.NON_FINAL,
         JsonTypeInfo.As.PROPERTY);
 
     return RedisCacheConfiguration.defaultCacheConfig()
-        .entryTtl(Duration.ofMinutes(10))
         .serializeValuesWith(
             RedisSerializationContext.SerializationPair.fromSerializer(
                 new GenericJackson2JsonRedisSerializer(redisMapper)));
