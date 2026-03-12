@@ -14,12 +14,12 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
     pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class ApplicationConfiguration {
 
-    @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
+  @Bean
+  @Primary
+  public ObjectMapper objectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
 
-        return mapper;
-    }
+    return mapper;
+  }
 }
