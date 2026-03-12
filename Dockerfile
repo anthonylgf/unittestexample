@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/eclipse-temurin:21-jdk-jammy as deps
+FROM eclipse-temurin:21-jdk-jammy as deps
 
 WORKDIR /build
 
@@ -28,7 +28,7 @@ WORKDIR /build
 
 RUN java -Djarmode=layertools -jar target/app.jar extract --destination target/extracted
 
-FROM public.ecr.aws/docker/library/eclipse-temurin:21-jre-jammy AS final
+FROM eclipse-temurin:21-jre-jammy AS final
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
