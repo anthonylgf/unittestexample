@@ -17,6 +17,9 @@ import com.example.unittestexample.utils.DateUtils;
 import java.util.ArrayList;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -33,6 +36,7 @@ public class AlunoService {
   private final AlunoPublisher alunoPublisher;
 
   @Transactional
+  @CachePut(value = "alunos", key = "#result.id")
   public Aluno salvar(Aluno aluno) {
     // Verificar se a idade do aluno eh valida
     int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
@@ -55,6 +59,7 @@ public class AlunoService {
     return alunoSalvo;
   }
 
+  @CacheEvict(value = "alunos", key = "#id")
   public void atualizarAluno(Long id, Aluno aluno) {
     Aluno alunoSalvo =
         alunoRepository.findById(id).orElseThrow(() -> new AlunoNaoEncontradoException(id));
@@ -63,6 +68,7 @@ public class AlunoService {
     alunoRepository.save(alunoSalvo);
   }
 
+  @CacheEvict(value = "alunos", key = "#id")
   public void deletarAluno(Long id) {
     Aluno alunoSalvo =
         alunoRepository.findById(id).orElseThrow(() -> new AlunoNaoEncontradoException(id));
@@ -70,6 +76,7 @@ public class AlunoService {
     alunoRepository.delete(alunoSalvo);
   }
 
+  @Cacheable(value = "alunos", key = "#id")
   public Aluno buscarPorId(Long id) {
     return alunoRepository.findById(id).orElseThrow(() -> new AlunoNaoEncontradoException(id));
   }
