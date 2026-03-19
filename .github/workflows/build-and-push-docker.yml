@@ -1,9 +1,6 @@
 name: Build and Push Docker Image to ECR
 
-on:
-  push:
-    branches:
-      - master
+on: [pull_request]
 
 jobs:
   build-and-push:
