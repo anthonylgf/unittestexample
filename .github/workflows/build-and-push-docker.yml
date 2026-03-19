@@ -2,16 +2,14 @@ name: Build and push docker
 
 on: [pull_request]
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
+    permissions:
+      id-token: write
+      contents: read
     steps:
-      - name: Checkout do repositorio
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials via OIDC
