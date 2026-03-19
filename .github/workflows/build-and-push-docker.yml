@@ -1,7 +1,9 @@
 name: Build and Push Docker Image to ECR
 
-on: [pull_request]
-
+on:
+  push:
+    branches:
+      - master
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
