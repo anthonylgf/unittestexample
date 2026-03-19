@@ -1,9 +1,6 @@
 name: Build and Push Docker Image to ECR
 
-on:
-  push:
-    branches:
-      - master
+on: [pull_request]
 
 jobs:
   build-and-push:
@@ -24,7 +21,7 @@ jobs:
       - name: Generate image tag
         id: tag
         run: |
-          TAG=$(date +'%Y%m%d%H%M%S')-$(echo ${GITHUB_SHA} | cut -c1-7)
+          TAG=$(TZ='America/Sao_Paulo' date +'%Y%m%d%H%M%S')-$(echo ${GITHUB_SHA} | cut -c1-7)
           echo "IMAGE_TAG=$TAG" >> $GITHUB_OUTPUT
 
       - name: Build and Push to ECR
