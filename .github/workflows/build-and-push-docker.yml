@@ -1,0 +1,35 @@
+name: Build and Push Docker Image to ECR
+
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Generate image tag
+        id: tag
+        run: |
+          TAG=$(TZ='America/Sao_Paulo' date +'%Y%m%d%H%M%S')-$(echo ${GITHUB_SHA} | cut -c1-7)
+          echo "IMAGE_TAG=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and Push to ECR
+        run: |
+          chmod +x script/aws/deploy-to-ecr.sh
+          ./script/aws/deploy-to-ecr.sh \
+            --tag ${{ steps.tag.outputs.IMAGE_TAG }} \
+            --awsuser ${{ secrets.AWS_USER}} \
+            --awsregion ${{ secrets.AWS_REGION }}
