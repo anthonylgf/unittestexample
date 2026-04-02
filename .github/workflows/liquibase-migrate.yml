@@ -23,12 +23,12 @@ jobs:
       - name: Run Liquibase Update
         env:
           DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_USERNAME: ${{ secrets.db-username }}
+          DB_PASSWORD: ${{ secrets.db-password }}
           CHANGELOG_PATH: "src/main/resources/db/changelog.yaml"
         run: |
           ./mvnw liquibase:update \
             -Dliquibase.url=$DB_URL \
-            -Dliquibase.username=$DB_USERNAME \
-            -Dliquibase.password=$DB_PASSWORD \
-            -Dliquibase.changeLogFile=$CHANGELOG_PATH
+            -Dliquibase.username=$db-username \
+            -Dliquibase.password=$db-password \
+            -Dliquibase.changeLogFile="src/main/resources/db/changelog.yaml"
