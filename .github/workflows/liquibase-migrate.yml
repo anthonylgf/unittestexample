@@ -28,7 +28,7 @@ jobs:
           CHANGELOG_PATH: "src/main/resources/db/changelog.yaml"
         run: |
           ./mvnw liquibase:update \
-            -Dliquibase.url=${{ secrets.DB_URL }} \
-            -Dliquibase.username=${{ secrets.db-username }} \
-            -Dliquibase.password=${{ secrets.db-password }}\
-            -Dliquibase.changeLogFile="src/main/resources/db/changelog.yaml"
+            "-Dliquibase.url=${{ secrets.DB_URL }}" \
+            "-Dliquibase.username=${{ secrets.db-username }}" \
+            "-Dliquibase.password=${{ secrets.db-password }}" \
+            "-Dliquibase.changeLogFile="src/main/resources/db/changelog.yaml"
