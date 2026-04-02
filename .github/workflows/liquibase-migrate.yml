@@ -29,6 +29,6 @@ jobs:
         run: |
           ./mvnw liquibase:update \
             -Dliquibase.url="${{ secrets.DB_URL }}" \
-            -Dliquibase.username="${{ secrets.db-username }}" \
-            -Dliquibase.password="${{ secrets.db-password }}" \
+            -Dliquibase.username="${{ secrets.DB_USERNAME }}" \
+            -Dliquibase.password="${{ secrets.DB_PASSWORD }}" \
             -Dliquibase.changeLogFile="src/main/resources/db/changelog.yaml"
