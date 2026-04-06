@@ -53,8 +53,8 @@ public class AlunoController {
   @GetMapping("/{id}")
   public ResponseEntity<AlunoDto> buscarPorId(@PathVariable Long id) {
     log.info("Buscando aluno de id {}", id);
-    var aluno = alunoService.buscarPorId(id);
-    var alunoDto = AlunoMapper.INSTANCE.mapearParaAlunoDto(aluno);
+
+    AlunoDto alunoDto = alunoService.buscarPorId(id);
     return ResponseEntity.ok(alunoDto);
   }
 
