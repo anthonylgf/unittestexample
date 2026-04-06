@@ -1,13 +1,8 @@
 package com.example.unittestexample.models;
 
 import com.example.unittestexample.enums.Genero;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.time.LocalDate;
 import lombok.*;
 
@@ -30,4 +25,9 @@ public class Aluno {
 
   @Column(name = "data_nascimento", nullable = false)
   private LocalDate dataNascimento;
+
+  @ManyToOne
+  @JoinColumn(name = "turma_id")
+  @JsonBackReference
+  private Turma turma;
 }
