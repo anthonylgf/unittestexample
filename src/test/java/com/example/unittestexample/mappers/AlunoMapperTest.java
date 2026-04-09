@@ -6,7 +6,11 @@ import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.models.Aluno;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.example.unittestexample.models.Turma;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -32,7 +36,8 @@ class AlunoMapperTest {
 
   @Test
   void mapearParaAlunoDto() {
-    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+    Turma turma = new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
     AlunoDto aluno1 = AlunoMapper.INSTANCE.mapearParaAlunoDto(aluno);
     assertNotNull(aluno1, "Aluno não pode ser nulo");
     assertEquals("Karine", aluno1.getNome());
@@ -43,10 +48,12 @@ class AlunoMapperTest {
 
   @Test
   void mapearParaAlunoDtoPage() {
-    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+    Turma turma = new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+
+    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
 
     PageRequest pagina = PageRequest.of(0, 2);
-    Aluno aluno1 = new Aluno(1L, "Jose William", Genero.MASCULINO, LocalDate.now().minusYears(4L));
+    Aluno aluno1 = new Aluno(1L, "Jose William", Genero.MASCULINO, LocalDate.now().minusYears(4L),turma);
 
     List<Aluno> alunoList = List.of(aluno, aluno1);
     Page<Aluno> alunos = new PageImpl<>(alunoList, pagina, alunoList.size());
@@ -68,14 +75,15 @@ class AlunoMapperTest {
 
   @Test
   void merge() {
-    Aluno alunoService = new Aluno(99L, "Jose Ferreira", Genero.MASCULINO, null);
+    Turma turma = new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Aluno alunoService = new Aluno(99L, "Teste Ferreira", Genero.MASCULINO, null, turma);
 
     Aluno alunoTarget =
-        new Aluno(1L, "Jose William", Genero.MASCULINO, LocalDate.now().minusYears(4L));
+        new Aluno(1L, "Jose William", Genero.MASCULINO, LocalDate.now().minusYears(4L), turma);
     AlunoMapper.INSTANCE.merge(alunoService, alunoTarget);
 
     assertEquals(1L, alunoTarget.getId());
-    assertEquals("Jose Ferreira", alunoTarget.getNomeCompleto());
+    assertEquals("Teste Ferreira", alunoTarget.getNomeCompleto());
     assertEquals(Genero.MASCULINO, alunoTarget.getGenero());
     assertEquals(LocalDate.now().minusYears(4L), alunoTarget.getDataNascimento());
   }
