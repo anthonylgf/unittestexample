@@ -9,6 +9,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.time.LocalDate;
 import lombok.*;
 
@@ -18,9 +20,7 @@ import lombok.*;
 @Setter
 @Entity
 @Table(name = "ALUNO")
-public class Aluno implements Serializable {
-
-  private static final long serialVersionUID = 1L;
+public class Aluno {
 
   @Id @GeneratedValue private Long id;
 
