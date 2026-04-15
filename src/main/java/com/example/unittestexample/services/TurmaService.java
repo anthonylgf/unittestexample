@@ -55,7 +55,6 @@ public class TurmaService {
     return turmaRepository.findById(id).orElseThrow(() -> new TurmaNaoEncontradaException(id));
   }
 
-  @Transactional
   public TurmaDetalhesDto buscarTurmaDetalhada(Long id) {
     Turma turma = buscarPorId(id);
     return turmaMapper.paraDetalhesDto(turma);

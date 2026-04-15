@@ -5,12 +5,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.models.Aluno;
+import com.example.unittestexample.models.Turma;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.example.unittestexample.models.Turma;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -36,8 +35,11 @@ class AlunoMapperTest {
 
   @Test
   void mapearParaAlunoDto() {
-    Turma turma = new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
-    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Aluno aluno =
+        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
     AlunoDto aluno1 = AlunoMapper.INSTANCE.mapearParaAlunoDto(aluno);
     assertNotNull(aluno1, "Aluno não pode ser nulo");
     assertEquals("Karine", aluno1.getNome());
@@ -48,12 +50,16 @@ class AlunoMapperTest {
 
   @Test
   void mapearParaAlunoDtoPage() {
-    Turma turma = new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
 
-    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
+    Aluno aluno =
+        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
 
     PageRequest pagina = PageRequest.of(0, 2);
-    Aluno aluno1 = new Aluno(1L, "Jose William", Genero.MASCULINO, LocalDate.now().minusYears(4L),turma);
+    Aluno aluno1 =
+        new Aluno(1L, "Jose William", Genero.MASCULINO, LocalDate.now().minusYears(4L), turma);
 
     List<Aluno> alunoList = List.of(aluno, aluno1);
     Page<Aluno> alunos = new PageImpl<>(alunoList, pagina, alunoList.size());
@@ -75,7 +81,9 @@ class AlunoMapperTest {
 
   @Test
   void merge() {
-    Turma turma = new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
     Aluno alunoService = new Aluno(99L, "Teste Ferreira", Genero.MASCULINO, null, turma);
 
     Aluno alunoTarget =

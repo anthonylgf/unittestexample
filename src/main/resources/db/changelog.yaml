@@ -1,4 +1,6 @@
 databaseChangeLog:
+  - include:
+      file: db/changelog/changes/20260413-criar-tabela-turma.yaml
   - changeSet:
       id: 1
       author: karine.ferreira

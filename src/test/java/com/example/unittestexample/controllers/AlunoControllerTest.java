@@ -1,46 +1,46 @@
- package com.example.unittestexample.controllers;
+package com.example.unittestexample.controllers;
 
- import static org.hamcrest.Matchers.hasSize;
- import static org.hamcrest.Matchers.is;
- import static org.mockito.ArgumentMatchers.any;
- import static org.mockito.ArgumentMatchers.eq;
- import static org.mockito.Mockito.*;
- import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
- import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
- import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
- import com.example.unittestexample.dtos.AlunoDto;
- import com.example.unittestexample.dtos.AlunoFilters;
- import com.example.unittestexample.enums.Genero;
- import com.example.unittestexample.exceptions.AlunoExisteMesmoNomeException;
- import com.example.unittestexample.exceptions.AlunoNaoEncontradoException;
- import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
- import com.example.unittestexample.mappers.AlunoMapper;
- import com.example.unittestexample.models.Aluno;
- import com.example.unittestexample.models.Turma;
- import com.example.unittestexample.repositories.AlunoRepository;
- import com.example.unittestexample.services.AlunoService;
- import com.fasterxml.jackson.databind.ObjectMapper;
- import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
- import java.time.LocalDate;
- import java.time.LocalTime;
- import java.util.ArrayList;
- import java.util.List;
- import org.junit.jupiter.api.Assertions;
- import org.junit.jupiter.api.BeforeEach;
- import org.junit.jupiter.api.Test;
- import org.mockito.ArgumentCaptor;
- import org.mockito.Captor;
- import org.springframework.beans.factory.annotation.Autowired;
- import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
- import org.springframework.data.domain.Page;
- import org.springframework.data.domain.PageImpl;
- import org.springframework.http.MediaType;
- import org.springframework.test.context.bean.override.mockito.MockitoBean;
- import org.springframework.test.web.servlet.MockMvc;
+import com.example.unittestexample.dtos.AlunoDto;
+import com.example.unittestexample.dtos.AlunoFilters;
+import com.example.unittestexample.enums.Genero;
+import com.example.unittestexample.exceptions.AlunoExisteMesmoNomeException;
+import com.example.unittestexample.exceptions.AlunoNaoEncontradoException;
+import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
+import com.example.unittestexample.mappers.AlunoMapper;
+import com.example.unittestexample.models.Aluno;
+import com.example.unittestexample.models.Turma;
+import com.example.unittestexample.repositories.AlunoRepository;
+import com.example.unittestexample.services.AlunoService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
- @WebMvcTest(AlunoController.class)
- class AlunoControllerTest {
+@WebMvcTest(AlunoController.class)
+class AlunoControllerTest {
 
   @Autowired private ObjectMapper objectMapper;
 
@@ -59,7 +59,8 @@
     objectMapper.registerModule(new JavaTimeModule());
   }
 
-  private final Turma turma = new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+  private final Turma turma =
+      new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
 
   private final Aluno aluno =
       new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
@@ -84,21 +85,11 @@
     when(service.salvar(any(Aluno.class))).thenReturn(alunoEsperado);
 
     testClient
-        .perform(
-            post("/alunos")
-                .contentType(
-                    MediaType
-                        .APPLICATION_JSON)
-                .content(
-                    jsonDeEntrada)
-            )
+        .perform(post("/alunos").contentType(MediaType.APPLICATION_JSON).content(jsonDeEntrada))
         .andExpect(status().isCreated());
     Assertions.assertEquals("KARINE FERREIRA", alunoEsperado.getNomeCompleto());
     Assertions.assertEquals(LocalDate.of(2021, 10, 31), alunoEsperado.getDataNascimento());
-    verify(service)
-        .salvar(
-            alunoCaptor
-                .capture());
+    verify(service).salvar(alunoCaptor.capture());
   }
 
   @Test
@@ -142,7 +133,8 @@
   public void alterarAluno_ComIdExistentes_RetornarStatus204() throws Exception {
     Long aluno_id = 1L;
 
-    String jsonDeEntrada = "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\"," + "\"turmaId\": \"1\"" + "}";
+    String jsonDeEntrada =
+        "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\"," + "\"turmaId\": \"1\"" + "}";
 
     doNothing().when(service).atualizarAluno(eq(aluno_id), any(Aluno.class));
 
@@ -163,7 +155,8 @@
   public void atualizarAluno_ComIdInexistentes_RetornarErroMessage404() throws Exception {
     Long aluno_id = 99L;
 
-    String jsonDeEntrada = "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\","  + "\"turmaId\": \"1\"" + "}";
+    String jsonDeEntrada =
+        "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\"," + "\"turmaId\": \"1\"" + "}";
 
     doThrow(new AlunoNaoEncontradoException(aluno_id))
         .when(service)
@@ -225,13 +218,13 @@
 
   @Test
   public void buscarAluno_ComIdExistente_RetornarAlunoComStatus200() throws Exception {
-      AlunoDto alunoTeste = new AlunoDto();
-      alunoTeste.setId(1L);
-      alunoTeste.setNome("KARINE");
-      alunoTeste.setSobrenome("FERREIRA");
-      alunoTeste.setGenero(Genero.FEMININO);
-      alunoTeste.setDataNascimento(LocalDate.now().minusYears(4L));
-      alunoTeste.setTurmaId(turma.getId());
+    AlunoDto alunoTeste = new AlunoDto();
+    alunoTeste.setId(1L);
+    alunoTeste.setNome("KARINE");
+    alunoTeste.setSobrenome("FERREIRA");
+    alunoTeste.setGenero(Genero.FEMININO);
+    alunoTeste.setDataNascimento(LocalDate.now().minusYears(4L));
+    alunoTeste.setTurmaId(turma.getId());
     Long id = 1L;
     when(service.buscarPorId(any(Long.class))).thenReturn(alunoTeste);
 
@@ -294,4 +287,4 @@
 
     verify(service).listarAlunos(any(AlunoFilters.class), eq(pagina), eq(limite));
   }
- }
+}

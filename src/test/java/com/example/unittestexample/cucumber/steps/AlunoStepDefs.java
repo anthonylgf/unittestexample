@@ -13,6 +13,7 @@ import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.models.Turma;
 import com.example.unittestexample.repositories.AlunoRepository;
+import com.example.unittestexample.repositories.TurmaRepository;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.an.E;
@@ -41,13 +42,16 @@ public class AlunoStepDefs {
 
   private final AlunoRepository alunoRepository;
 
+  private final TurmaRepository turmaRepository;
+
   private final WebTestClient webTestClient;
 
   private final IntegrationTestsContext integrationTestsContext;
 
   private WebTestClient.ResponseSpec responseSpec;
 
-  private final Turma turma = new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+  private final Turma turma =
+      new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
 
   private final Aluno aluno =
       new Aluno(1L, "KARINE FERREIRA", Genero.FEMININO, LocalDate.of(2021, 10, 31), turma);
@@ -68,6 +72,8 @@ public class AlunoStepDefs {
   @Transactional
   public void limparBaseParaTeste() {
     alunoRepository.deleteAll();
+    turmaRepository.deleteAll();
+    turmaRepository.save(turma);
     System.out.println("Base de dados limpa com sucesso.");
     assertEquals(0, alunoRepository.findAll().size());
   }
@@ -96,7 +102,8 @@ public class AlunoStepDefs {
     String nome = gerarNomeAleatorio();
     String sobrenome = gerarNomeAleatorio();
     AlunoDto alunoTest =
-        new AlunoDto(null, nome, sobrenome, Genero.FEMININO, LocalDate.now().minusYears(4L), turma.getId());
+        new AlunoDto(
+            null, nome, sobrenome, Genero.FEMININO, LocalDate.now().minusYears(4L), turma.getId());
     responseSpec =
         webTestClient
             .post()
@@ -278,7 +285,8 @@ public class AlunoStepDefs {
             gerarNomeAleatorio(),
             gerarNomeAleatorio(),
             Genero.FEMININO,
-            LocalDate.now().minusYears(7), turma.getId());
+            LocalDate.now().minusYears(7),
+            turma.getId());
 
     responseSpec =
         webTestClient
@@ -330,14 +338,16 @@ public class AlunoStepDefs {
             gerarNomeAleatorio(),
             gerarNomeAleatorio(),
             Genero.FEMININO,
-            LocalDate.now().minusYears(1L), turma.getId());
+            LocalDate.now().minusYears(1L),
+            turma.getId());
     AlunoDto alunoDtoTest2 =
         new AlunoDto(
             null,
             gerarNomeAleatorio(),
             gerarNomeAleatorio(),
             Genero.MASCULINO,
-            LocalDate.now().minusYears(11L), turma.getId());
+            LocalDate.now().minusYears(11L),
+            turma.getId());
     responseSpec =
         webTestClient
             .post()
@@ -454,14 +464,16 @@ public class AlunoStepDefs {
             gerarNomeAleatorio(),
             gerarNomeAleatorio(),
             Genero.FEMININO,
-            LocalDate.now().minusYears(4L), turma.getId());
+            LocalDate.now().minusYears(4L),
+            turma.getId());
     AlunoDto alunoDtoTest2 =
         new AlunoDto(
             null,
             gerarNomeAleatorio(),
             gerarNomeAleatorio(),
             Genero.MASCULINO,
-            LocalDate.now().minusYears(6L), turma.getId());
+            LocalDate.now().minusYears(6L),
+            turma.getId());
 
     responseSpec =
         webTestClient
@@ -534,14 +546,16 @@ public class AlunoStepDefs {
             gerarNomeAleatorio(),
             gerarNomeAleatorio(),
             Genero.FEMININO,
-            LocalDate.now().minusYears(4L), turma.getId());
+            LocalDate.now().minusYears(4L),
+            turma.getId());
     AlunoDto alunoDto2 =
         new AlunoDto(
             null,
             gerarNomeAleatorio(),
             gerarNomeAleatorio(),
             Genero.FEMININO,
-            LocalDate.now().minusYears(4L), turma.getId());
+            LocalDate.now().minusYears(4L),
+            turma.getId());
     responseSpec =
         webTestClient
             .post()
@@ -611,9 +625,11 @@ public class AlunoStepDefs {
   public void bancoDadosTodosOsAlunos_Erro400() {
 
     Aluno aluno2 =
-        new Aluno(null, gerarNomeAleatorio(), Genero.MASCULINO, LocalDate.now().minusYears(4L), turma);
+        new Aluno(
+            null, gerarNomeAleatorio(), Genero.MASCULINO, LocalDate.now().minusYears(4L), turma);
     Aluno aluno3 =
-        new Aluno(null, gerarNomeAleatorio(), Genero.FEMININO, LocalDate.now().minusYears(5L), turma);
+        new Aluno(
+            null, gerarNomeAleatorio(), Genero.FEMININO, LocalDate.now().minusYears(5L), turma);
 
     alunoRepository.save(aluno2);
     alunoRepository.save(aluno3);
