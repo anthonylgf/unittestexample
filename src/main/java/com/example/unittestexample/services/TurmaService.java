@@ -37,6 +37,9 @@ public class TurmaService {
             t -> {
               throw new TurmaJaExistenteException(turma.getNome());
             });
+    if (turma.getHorarioFim().isBefore(turma.getHorarioInicio())) {
+      throw new FimAntesDoInicioException(turma.getHorarioFim(), turma.getHorarioInicio());
+    }
 
     Turma turmaSalva = turmaRepository.save(turma);
 
@@ -45,6 +48,9 @@ public class TurmaService {
 
   @Transactional(readOnly = true)
   public Page<TurmaResumoDto> listarTurmas(Integer pagina, Integer limite) {
+    if (pagina == null || pagina < 0 || limite == null || limite <= 0) {
+      throw new ParametrosListagemInvalidosException("Página ou limite de listagem inválidos.");
+    }
     Pageable pageable = PageRequest.of(pagina, limite, Sort.by("nome").ascending());
 
     return turmaRepository.findAll(pageable).map(turma -> turmaMapper.paraResumoDto(turma));
