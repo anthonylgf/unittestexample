@@ -15,6 +15,7 @@ import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.exceptions.AlunoExisteMesmoNomeException;
 import com.example.unittestexample.exceptions.AlunoNaoEncontradoException;
 import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
+import com.example.unittestexample.exceptions.TurmaLotadaException;
 import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.models.Turma;
@@ -286,5 +287,53 @@ class AlunoControllerTest {
     System.out.println("Parametros de listagem invalidos");
 
     verify(service).listarAlunos(any(AlunoFilters.class), eq(pagina), eq(limite));
+  }
+
+  @Test
+  public void trasferirAlunoDeTurma_DadosValidos_RetornarStatus200() throws Exception {
+
+    Turma turmaNova =
+        new Turma(
+            2L, "TURMA-A2", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+
+    Long alunoId = 1L;
+
+    AlunoDto alunoTransferido =
+        new AlunoDto(
+            alunoId,
+            "Karine",
+            "Ferreira",
+            Genero.FEMININO,
+            LocalDate.now().minusYears(4L),
+            turmaNova.getId());
+
+    when(service.transferirAluno(eq(alunoId), eq(turmaNova.getId()))).thenReturn(alunoTransferido);
+
+    testClient
+        .perform(
+            patch("/alunos/{alunoId}/transferir/{idNovaTurma}", alunoId, turmaNova.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(alunoId))
+        .andExpect(jsonPath("$.turmaId").value(2));
+  }
+
+  @Test
+  public void trasferirAlunoDeTurma_TurmaNovaLotada_RetornarStatus409() throws Exception {
+
+    Turma turmaNova =
+        new Turma(
+            2L, "TURMA-A2", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 1, new ArrayList<>());
+
+    Long alunoId = 1L;
+
+    when(service.transferirAluno(eq(alunoId), eq(turmaNova.getId())))
+        .thenThrow(TurmaLotadaException.class);
+
+    testClient
+        .perform(
+            patch("/alunos/{alunoId}/transferir/{idNovaTurma}", alunoId, turmaNova.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isConflict());
   }
 }

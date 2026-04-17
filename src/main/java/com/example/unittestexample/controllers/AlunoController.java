@@ -68,4 +68,10 @@ public class AlunoController {
     var alunosDto = AlunoMapper.INSTANCE.mapearParaAlunoDtoPage(alunos);
     return ResponseEntity.ok(alunosDto);
   }
+
+  @PatchMapping("/{alunoId}/transferir/{idNovaTurma}")
+  public ResponseEntity<AlunoDto> transferirAluno(
+      @PathVariable Long alunoId, @PathVariable Long idNovaTurma) {
+    return ResponseEntity.ok(alunoService.transferirAluno(alunoId, idNovaTurma));
+  }
 }

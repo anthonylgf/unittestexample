@@ -8,10 +8,7 @@ import com.example.unittestexample.configs.ApplicationProperties;
 import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.dtos.AlunoFilters;
 import com.example.unittestexample.enums.Genero;
-import com.example.unittestexample.exceptions.AlunoExisteMesmoNomeException;
-import com.example.unittestexample.exceptions.AlunoNaoEncontradoException;
-import com.example.unittestexample.exceptions.IdadeInvalidaException;
-import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
+import com.example.unittestexample.exceptions.*;
 import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.models.Turma;
@@ -424,5 +421,59 @@ class AlunoServiceTest {
     verify(dateUtils, times(1)).recuperarDataEmAnos(2);
     verify(dateUtils, times(1)).recuperarDataEmAnos(10);
     verify(alunoRepository, times(1)).findAll(any(Specification.class), eq(pageableEsperado));
+  }
+
+  @Test
+  void transferirAluno_ComOsIdsValidos_RetornarAluno() {
+    Turma turmaNova = new Turma();
+    turmaNova.setId(2L);
+    turmaNova.setNome("TURMA-A1");
+    turmaNova.setAlunos(new ArrayList<>());
+    turmaNova.setLimiteTurma(10);
+
+    Aluno aluno =
+        new Aluno(3L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), null);
+
+    AlunoDto alunoDto =
+        new AlunoDto(
+            3L,
+            "Karine",
+            "Ferreira",
+            Genero.FEMININO,
+            LocalDate.now().minusYears(4L),
+            turmaNova.getId());
+
+    when(alunoRepository.findById(3L)).thenReturn(Optional.of(aluno));
+    when(turmaRepository.findById(2L)).thenReturn(Optional.of(turmaNova));
+    when(alunoRepository.save(any(Aluno.class))).thenReturn(aluno);
+    when(mapper.mapearParaAlunoDto(any(Aluno.class))).thenReturn(alunoDto);
+
+    AlunoDto resultado = alunoService.transferirAluno(3L, 2L);
+
+    Assertions.assertNotNull(resultado);
+    assertEquals(aluno.getId(), resultado.getId());
+    assertEquals(turmaNova, aluno.getTurma());
+
+    verify(alunoRepository, times(1)).save(any(Aluno.class));
+    verify(alunoRepository, times(1)).findById(3L);
+    verify(mapper, times(1)).mapearParaAlunoDto(any(Aluno.class));
+  }
+
+  @Test
+  void transferirAluno_ComTurmaNovaLotada_RetornarTurmaLotadaException() {
+    Turma turmaNova = new Turma();
+    turmaNova.setId(2L);
+    turmaNova.setNome("TURMA-A1");
+    turmaNova.setAlunos(new ArrayList<>());
+    turmaNova.setLimiteTurma(10);
+
+    Aluno aluno =
+        new Aluno(3L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), null);
+
+    when(alunoRepository.findById(3L)).thenReturn(Optional.of(aluno));
+    when(turmaRepository.findById(2L)).thenThrow(TurmaLotadaException.class);
+    assertThrows(
+        TurmaLotadaException.class,
+        () -> alunoService.transferirAluno(aluno.getId(), turmaNova.getId()));
   }
 }

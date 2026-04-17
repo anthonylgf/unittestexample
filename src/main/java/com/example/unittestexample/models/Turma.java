@@ -1,10 +1,7 @@
 package com.example.unittestexample.models;
 
-import com.example.unittestexample.exceptions.DuracaoMaiorQuePermitidoException;
-import com.example.unittestexample.exceptions.FimAntesDoInicioException;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,22 +40,4 @@ public class Turma {
   @OneToMany(mappedBy = "turma", fetch = FetchType.LAZY)
   @JsonManagedReference
   private List<Aluno> alunos = new ArrayList<>();
-
-  @PrePersist
-  @PreUpdate
-  private void calcularDuracao() {
-    if (horarioInicio != null && horarioFim != null) {
-      if (horarioFim.isBefore(horarioInicio)) {
-        throw new FimAntesDoInicioException(horarioFim, horarioInicio);
-      }
-
-      long horas = Duration.between(horarioInicio, horarioFim).toHours();
-
-      if (horas > 5) {
-        throw new DuracaoMaiorQuePermitidoException((int) horas);
-      }
-
-      this.duracao = (int) horas;
-    }
-  }
 }

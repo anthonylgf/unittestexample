@@ -40,6 +40,5 @@ public class AlunoDto {
   @Null(groups = Update.class, message = "A data de nascimento nao deve ser modificada")
   private LocalDate dataNascimento;
 
-  @NotNull(message = "O ID da turma é obrigatório")
   private Long turmaId;
 }

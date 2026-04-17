@@ -7,15 +7,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.dtos.TurmaDto;
 import com.example.unittestexample.dtos.TurmaResumoDto;
-import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.exceptions.*;
 import com.example.unittestexample.mappers.TurmaMapper;
 import com.example.unittestexample.models.Turma;
 import com.example.unittestexample.services.TurmaService;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -244,55 +241,6 @@ public class TurmaControllerTest {
     testClient
         .perform(delete("/turmas/{id}", turmaRetornada.getId()))
         .andExpect(status().isNotFound());
-  }
-
-  @Test
-  public void trasferirAlunoDeTurma_DadosValidos_RetornarStatus200() throws Exception {
-
-    Turma turmaNova =
-        new Turma(
-            2L, "TURMA-A2", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
-
-    Long alunoId = 1L;
-
-    AlunoDto alunoTransferido =
-        new AlunoDto(
-            alunoId,
-            "Karine",
-            "Ferreira",
-            Genero.FEMININO,
-            LocalDate.now().minusYears(4L),
-            turmaNova.getId());
-
-    when(turmaService.transferirAluno(eq(alunoId), eq(turmaNova.getId())))
-        .thenReturn(alunoTransferido);
-
-    testClient
-        .perform(
-            patch("/turmas/{alunoId}/transferir/{idNovaTurma}", alunoId, turmaNova.getId())
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(alunoId))
-        .andExpect(jsonPath("$.turmaId").value(2));
-  }
-
-  @Test
-  public void trasferirAlunoDeTurma_TurmaNovaLotada_RetornarStatus409() throws Exception {
-
-    Turma turmaNova =
-        new Turma(
-            2L, "TURMA-A2", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 1, new ArrayList<>());
-
-    Long alunoId = 1L;
-
-    when(turmaService.transferirAluno(eq(alunoId), eq(turmaNova.getId())))
-        .thenThrow(TurmaLotadaException.class);
-
-    testClient
-        .perform(
-            patch("/turmas/{alunoId}/transferir/{idNovaTurma}", alunoId, turmaNova.getId())
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isConflict());
   }
 
   @Test

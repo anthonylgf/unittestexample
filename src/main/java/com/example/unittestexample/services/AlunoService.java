@@ -147,4 +147,27 @@ public class AlunoService {
     requireNonNull(limite, "limite nao pode ser nulo.");
     return Pageable.ofSize(limite).withPage(pagina);
   }
+
+  @Transactional
+  public AlunoDto transferirAluno(Long alunoId, Long novaTurmaId) {
+    Aluno aluno =
+        alunoRepository
+            .findById(alunoId)
+            .orElseThrow(() -> new AlunoNaoEncontradoException(alunoId));
+
+    Turma novaTurma =
+        turmaRepository
+            .findById(novaTurmaId)
+            .orElseThrow(() -> new TurmaNaoEncontradaException(novaTurmaId));
+
+    int alunosMatriculados = novaTurma.getAlunos().size();
+    if (alunosMatriculados >= novaTurma.getLimiteTurma()) {
+      throw new TurmaLotadaException(novaTurma.getNome(), novaTurma.getLimiteTurma());
+    }
+
+    aluno.setTurma(novaTurma);
+    Aluno alunoSalvo = alunoRepository.save(aluno);
+
+    return mapper.mapearParaAlunoDto(alunoSalvo);
+  }
 }

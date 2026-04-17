@@ -1,13 +1,10 @@
 package com.example.unittestexample.services;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.dtos.TurmaDto;
 import com.example.unittestexample.dtos.TurmaResumoDto;
-import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.exceptions.*;
 import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.mappers.TurmaMapper;
@@ -15,7 +12,6 @@ import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.models.Turma;
 import com.example.unittestexample.repositories.AlunoRepository;
 import com.example.unittestexample.repositories.TurmaRepository;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,8 +81,6 @@ public class TurmaServiceTest {
     Turma turma =
         new Turma(
             1L, "TURMA_A1", LocalTime.of(10, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
-
-    when(turmaRepository.save(turma)).thenThrow(DuracaoMaiorQuePermitidoException.class);
 
     Assertions.assertThrows(
         DuracaoMaiorQuePermitidoException.class, () -> turmaService.salvar(turma));
@@ -189,60 +183,6 @@ public class TurmaServiceTest {
     assertThrows(TurmaPossuiAlunosException.class, () -> turmaService.deletar(turma1.getId()));
 
     verify(turmaRepository, never()).delete(any(Turma.class));
-  }
-
-  @Test
-  void transferirAluno_ComOsIdsValidos_RetornarAluno() {
-    Turma turmaNova = new Turma();
-    turmaNova.setId(2L);
-    turmaNova.setNome("TURMA-A1");
-    turmaNova.setAlunos(new ArrayList<>());
-    turmaNova.setLimiteTurma(10);
-
-    Aluno aluno =
-        new Aluno(3L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), null);
-
-    AlunoDto alunoDto =
-        new AlunoDto(
-            3L,
-            "Karine",
-            "Ferreira",
-            Genero.FEMININO,
-            LocalDate.now().minusYears(4L),
-            turmaNova.getId());
-
-    when(alunoRepository.findById(3L)).thenReturn(Optional.of(aluno));
-    when(turmaRepository.findById(2L)).thenReturn(Optional.of(turmaNova));
-    when(alunoRepository.save(any(Aluno.class))).thenReturn(aluno);
-    when(alunoMapper.mapearParaAlunoDto(any(Aluno.class))).thenReturn(alunoDto);
-
-    AlunoDto resultado = turmaService.transferirAluno(3L, 2L);
-
-    Assertions.assertNotNull(resultado);
-    assertEquals(aluno.getId(), resultado.getId());
-    assertEquals(turmaNova, aluno.getTurma());
-
-    verify(alunoRepository, times(1)).save(any(Aluno.class));
-    verify(alunoRepository, times(1)).findById(3L);
-    verify(alunoMapper, times(1)).mapearParaAlunoDto(any(Aluno.class));
-  }
-
-  @Test
-  void transferirAluno_ComTurmaNovaLotada_RetornarTurmaLotadaException() {
-    Turma turmaNova = new Turma();
-    turmaNova.setId(2L);
-    turmaNova.setNome("TURMA-A1");
-    turmaNova.setAlunos(new ArrayList<>());
-    turmaNova.setLimiteTurma(10);
-
-    Aluno aluno =
-        new Aluno(3L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), null);
-
-    when(alunoRepository.findById(3L)).thenReturn(Optional.of(aluno));
-    when(turmaRepository.findById(2L)).thenThrow(TurmaLotadaException.class);
-    assertThrows(
-        TurmaLotadaException.class,
-        () -> turmaService.transferirAluno(aluno.getId(), turmaNova.getId()));
   }
 
   @Test

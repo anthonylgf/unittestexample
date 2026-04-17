@@ -1,6 +1,5 @@
 package com.example.unittestexample.controllers;
 
-import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.dtos.TurmaDetalhesDto;
 import com.example.unittestexample.dtos.TurmaDto;
 import com.example.unittestexample.dtos.TurmaResumoDto;
@@ -45,12 +44,6 @@ public class TurmaController {
   public ResponseEntity<Void> deletarTurma(@PathVariable Long id) {
     service.deletar(id);
     return ResponseEntity.noContent().build();
-  }
-
-  @PatchMapping("/{alunoId}/transferir/{idNovaTurma}")
-  public ResponseEntity<AlunoDto> transferirAluno(
-      @PathVariable Long alunoId, @PathVariable Long idNovaTurma) {
-    return ResponseEntity.ok(service.transferirAluno(alunoId, idNovaTurma));
   }
 
   @PutMapping("{id}")
