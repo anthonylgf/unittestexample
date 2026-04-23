@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProfile name="prod, aws">
+        <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <providers>
+                    <timestamp>
+                        <timeZone>UTC</timeZone>
+                        <pattern>
+                            yyyy-MM-dd'T'HH:mm:ss.SSSXXX
+                        </pattern>
+                    </timestamp>
+                    <logLevel>
+                        <fieldName>level</fieldName>
+                    </logLevel>
+                    <loggerName>
+                        <fieldName>logger</fieldName>
+                    </loggerName>
+                    <threadName>
+                        <fieldName>thread</fieldName>
+                    </threadName>
+                    <message />
+                    <stackTrace>
+                        <fieldName>stackTrace</fieldName>
+                    </stackTrace>
+                    <mdc />
+                    <arguments />
+                    <globalCustomFields>
+                        {
+                        "application": "unittestexample",
+                        "environment": "aws"
+                        }
+                    </globalCustomFields>
+                </providers>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="STDOUT_JSON" />
+        </root>
+    </springProfile>
+
+    <springProfile name="default, docker-local">
+        <appender name="STDOUT_LEGIVEL" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{15}) - %msg%n</pattern>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="STDOUT_LEGIVEL" />
+        </root>
+    </springProfile>
+</configuration>

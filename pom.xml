@@ -159,6 +159,25 @@
             <version>2.6.0</version>
         </dependency>
 
+        <!-- Logback JSON Encoder -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>8.0</version>
+        </dependency>
+
+        <!-- Micrometer Tracing (tracing nativo do Spring Boot 3.x) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+
+        <!-- Propagacao de contexto via Kafka -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing</artifactId>
+        </dependency>
+
     </dependencies>
 	<build>
 		<plugins>
