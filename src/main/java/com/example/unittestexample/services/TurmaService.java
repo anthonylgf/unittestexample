@@ -9,6 +9,8 @@ import com.example.unittestexample.models.Turma;
 import com.example.unittestexample.repositories.TurmaRepository;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,19 +43,17 @@ public class TurmaService {
   }
 
   private void calcularDuracao(Turma turma) {
-    if (turma.getHorarioInicio() != null && turma.getHorarioFim() != null) {
-      if (turma.getHorarioFim().isBefore(turma.getHorarioInicio())) {
-        throw new FimAntesDoInicioException(turma.getHorarioFim(), turma.getHorarioInicio());
-      }
-
-      long horas = Duration.between(turma.getHorarioInicio(), turma.getHorarioFim()).toHours();
-
-      if (horas > LIMITE_MAXIMO_DURACAO_HORAS) {
-        throw new DuracaoMaiorQuePermitidoException((int) horas);
-      }
-
-      turma.setDuracao((int) horas);
+    if (turma.getHorarioFim().isBefore(turma.getHorarioInicio())) {
+      throw new FimAntesDoInicioException(turma.getHorarioFim(), turma.getHorarioInicio());
     }
+
+    long horas = Duration.between(turma.getHorarioInicio(), turma.getHorarioFim()).toHours();
+
+    if (horas > LIMITE_MAXIMO_DURACAO_HORAS) {
+      throw new DuracaoMaiorQuePermitidoException((int) horas);
+    }
+
+    turma.setDuracao((int) horas);
   }
 
   @Transactional(readOnly = true)
@@ -76,6 +76,7 @@ public class TurmaService {
     return turmaMapper.paraDetalhesDto(turma);
   }
 
+  @CacheEvict(value = "turmas", key = "#id")
   @Transactional
   public void deletar(Long id) {
     Turma turma = buscarPorId(id);
@@ -86,6 +87,7 @@ public class TurmaService {
     turmaRepository.delete(turma);
   }
 
+  @CachePut(value = "turmas", key = "#id")
   @Transactional
   public TurmaResumoDto alterar(Long id, TurmaDto dto) {
 
@@ -104,6 +106,13 @@ public class TurmaService {
     turmaExistente.setHorarioInicio(dto.getHorarioInicio());
     turmaExistente.setHorarioFim(dto.getHorarioFim());
     turmaExistente.setLimiteTurma(dto.getLimiteTurma());
+
+    if (turmaExistente.getAlunos().size() > turmaExistente.getLimiteTurma()) {
+      throw new TurmaPossuiAlunosException(
+          turmaExistente.getNome(), turmaExistente.getAlunos().size());
+    }
+
+    calcularDuracao(turmaExistente);
 
     Turma turmaAtualizada = turmaRepository.save(turmaExistente);
 
