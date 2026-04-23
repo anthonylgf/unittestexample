@@ -1,6 +1,7 @@
 package com.example.unittestexample.configs;
 
 import com.example.unittestexample.models.Aluno;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -65,7 +66,11 @@ public class KafkaConfig {
 
   @Bean
   public KafkaTemplate<String, Aluno> kafkaTemplate(
-      ProducerFactory<String, Aluno> producerFactory) {
-    return new KafkaTemplate<>(producerFactory);
+      ProducerFactory<String, Aluno> producerFactory, ObservationRegistry observationRegistry) {
+
+    KafkaTemplate<String, Aluno> template = new KafkaTemplate<>(producerFactory);
+    template.setObservationEnabled(true);
+    template.setObservationRegistry(observationRegistry);
+    return template;
   }
 }

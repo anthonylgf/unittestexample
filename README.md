@@ -33,3 +33,13 @@ chmod +x script/aws/deploy-to-ecr.sh
 - `--tag`: The tag for your Docker image (e.g., `v1.0.0`, `latest`, `dev`)
 - `--awsuser`: Your AWS account ID (12-digit number)
 - `--awsregion`: The AWS region where your ECR repository is located (e.g., `us-east-1`, `sa-east-1`)
+
+### Log level guideline
+
+| Level | When to use|
+|---|--|
+| ERROR |Malfunctions that prevent operation and require human intervention.|
+| WARN | Unexpected but recoverable situations (retry, fallback triggered)|
+| INFO | Relevant business events (student created, message published)|
+| DEBUG | Useful technical details for troubleshooting (enabled on demand) |
+| TRACE | Do not use in production |

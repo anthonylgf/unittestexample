@@ -17,6 +17,7 @@ import com.example.unittestexample.utils.DateUtils;
 import java.util.ArrayList;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AlunoService {
 
   private final AlunoRepository alunoRepository;
@@ -38,25 +40,32 @@ public class AlunoService {
   @Transactional
   @CachePut(value = "alunos", key = "#result.id")
   public Aluno salvar(Aluno aluno) {
+    log.debug("Iniciando processo de salvamento do aluno: {}", aluno.getNomeCompleto());
     // Verificar se a idade do aluno eh valida
     int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
     if (!idadeValida(idadeAluno)) {
+      log.error("Falha ao salvar: idade {} fora do intervalo permitido", idadeAluno);
       throw new IdadeInvalidaException(
           idadeAluno,
           applicationProperties.getMinimoIdade(),
           applicationProperties.getMaximoIdade());
     }
-
     // Verificar se nao existe um aluno com o mesmo nome
     Optional<Aluno> alunoMesmoNome = alunoRepository.findByNomeCompleto(aluno.getNomeCompleto());
     if (alunoMesmoNome.isPresent()) {
+      log.error("Já existe um aluno cadastrado com o nome: {}", aluno.getNomeCompleto());
       throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
     }
     Aluno alunoSalvo = alunoRepository.save(aluno);
+    log.info("Aluno salvo no banco com sucesso. ID: {}", alunoSalvo.getId());
+    try {
+      alunoPublisher.sendAluno(alunoSalvo);
 
-    alunoPublisher.sendAluno(alunoSalvo);
-
-    return alunoSalvo;
+      return alunoSalvo;
+    } catch (Exception ex) {
+      log.error("Erro ao enviar para o Kafka", ex);
+      throw ex;
+    }
   }
 
   @CacheEvict(value = "alunos", key = "#id")
