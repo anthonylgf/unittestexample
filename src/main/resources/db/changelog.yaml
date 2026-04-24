@@ -1,20 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/criar-tabela-turma.yaml
-  - changeSet:
-      id: 1
-      author: karine.ferreira
-      changes:
-        - createTable:
-            tableName: teste_unittest
-            columns:
-              - column:
-                  name: id
-                  type: bigint
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: descricao
-                  type: varchar(255)
+  - include:
+      file: db/criar-tabela-teste.yaml

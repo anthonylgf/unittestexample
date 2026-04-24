@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: karine.ferreira
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              tableName: teste_unittest
+      changes:
+        - createTable:
+            tableName: teste_unittest
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: descricao
+                  type: varchar(255)

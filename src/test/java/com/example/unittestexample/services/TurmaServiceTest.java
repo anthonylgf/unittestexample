@@ -192,10 +192,16 @@ public class TurmaServiceTest {
     Turma turmaEntity = new Turma();
     turmaEntity.setId(idExistente);
     turmaEntity.setNome("Nome Antigo");
+    turmaEntity.setAlunos(new ArrayList<>());
+    turmaEntity.setHorarioInicio(LocalTime.of(8, 0));
+    turmaEntity.setHorarioFim(LocalTime.of(10, 0));
 
     TurmaDto turmaDtoParaAtualizar = new TurmaDto();
     turmaDtoParaAtualizar.setId(idExistente);
     turmaDtoParaAtualizar.setNome("TURMA-A1");
+    turmaDtoParaAtualizar.setLimiteTurma(2);
+    turmaDtoParaAtualizar.setHorarioInicio(LocalTime.of(10, 0));
+    turmaDtoParaAtualizar.setHorarioFim(LocalTime.of(11, 0));
 
     when(turmaRepository.findById(idExistente)).thenReturn(Optional.of(turmaEntity));
     when(turmaRepository.save(any(Turma.class))).thenReturn(turmaEntity);
@@ -223,6 +229,61 @@ public class TurmaServiceTest {
         () -> {
           turmaService.alterar(idInexistente, turmaDto);
         });
+    verify(turmaRepository, never()).save(any(Turma.class));
+  }
+
+  @Test
+  void alterarTurma_ComLimiteInvalido_RetornarTurmaPossuiAlunoException() {
+    Long idExistente = 1L;
+
+    TurmaDto turmaDtoParaAtualizar = new TurmaDto();
+    turmaDtoParaAtualizar.setLimiteTurma(1);
+    turmaDtoParaAtualizar.setNome("TURMA-A1");
+
+    Turma turmaExistente = new Turma();
+    turmaExistente.setId(idExistente);
+    turmaExistente.setNome("TURMA-ANTIGA");
+    turmaExistente.setAlunos(List.of(new Aluno(), new Aluno()));
+    turmaExistente.setLimiteTurma(10);
+
+    when(turmaRepository.findById(idExistente)).thenReturn(Optional.of(turmaExistente));
+    when(turmaRepository.findByNome(anyString())).thenReturn(Optional.empty());
+
+    Assertions.assertThrows(
+        TurmaPossuiAlunosException.class,
+        () -> {
+          turmaService.alterar(idExistente, turmaDtoParaAtualizar);
+        });
+
+    verify(turmaRepository, never()).save(any(Turma.class));
+  }
+
+  @Test
+  void alterarTurma_ComHorarioInvalido_RetornarFimAntesDoInicioException() {
+    Long idExistente = 1L;
+
+    TurmaDto turmaDtoParaAtualizar = new TurmaDto();
+    turmaDtoParaAtualizar.setLimiteTurma(1);
+    turmaDtoParaAtualizar.setNome("TURMA-A1");
+    turmaDtoParaAtualizar.setLimiteTurma(10);
+    turmaDtoParaAtualizar.setHorarioInicio(LocalTime.of(14, 0));
+    turmaDtoParaAtualizar.setHorarioFim(LocalTime.of(12, 0));
+
+    Turma turmaExistente = new Turma();
+    turmaExistente.setId(idExistente);
+    turmaExistente.setNome("TURMA-ANTIGA");
+    turmaExistente.setAlunos(new ArrayList<>());
+    turmaExistente.setLimiteTurma(10);
+
+    when(turmaRepository.findById(idExistente)).thenReturn(Optional.of(turmaExistente));
+    when(turmaRepository.findByNome(anyString())).thenReturn(Optional.empty());
+
+    Assertions.assertThrows(
+        FimAntesDoInicioException.class,
+        () -> {
+          turmaService.alterar(idExistente, turmaDtoParaAtualizar);
+        });
+
     verify(turmaRepository, never()).save(any(Turma.class));
   }
 }
