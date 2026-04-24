@@ -190,4 +190,47 @@ public class GlobalExceptionHandler {
                 .build()));
     return ResponseEntity.internalServerError().body(respostaErro);
   }
+
+  @ResponseStatus(HttpStatus.CONFLICT)
+  @ExceptionHandler(TurmaJaExistenteException.class)
+  ResponseEntity<String> handleTurmaExistenteException(TurmaJaExistenteException ex) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+  }
+
+  @ResponseStatus(HttpStatus.CONFLICT)
+  @ExceptionHandler(TurmaPossuiAlunosException.class)
+  ResponseEntity<String> handleTurmaPossuiAlunosException(TurmaPossuiAlunosException ex) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(TurmaObrigatoriaException.class)
+  ResponseEntity<String> handleTurmaObrigatoriaException(TurmaObrigatoriaException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+  }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ExceptionHandler(TurmaNaoEncontradaException.class)
+  ResponseEntity<String> handleTurmaNaoEncontradaException(TurmaNaoEncontradaException ex) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+  }
+
+  @ResponseStatus(HttpStatus.CONFLICT)
+  @ExceptionHandler(TurmaLotadaException.class)
+  ResponseEntity<String> handleTurmaLotadaException(TurmaLotadaException ex) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(DuracaoMaiorQuePermitidoException.class)
+  ResponseEntity<String> handleDuracaoMaiorQuePermitidoException(
+      DuracaoMaiorQuePermitidoException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(FimAntesDoInicioException.class)
+  ResponseEntity<String> handleFimAntesDoInicioException(FimAntesDoInicioException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+  }
 }

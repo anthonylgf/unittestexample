@@ -5,17 +5,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.example.unittestexample.configs.ApplicationProperties;
+import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.dtos.AlunoFilters;
 import com.example.unittestexample.enums.Genero;
-import com.example.unittestexample.exceptions.AlunoExisteMesmoNomeException;
-import com.example.unittestexample.exceptions.AlunoNaoEncontradoException;
-import com.example.unittestexample.exceptions.IdadeInvalidaException;
-import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
+import com.example.unittestexample.exceptions.*;
+import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.models.Aluno;
+import com.example.unittestexample.models.Turma;
 import com.example.unittestexample.publisher.AlunoPublisher;
 import com.example.unittestexample.repositories.AlunoRepository;
+import com.example.unittestexample.repositories.TurmaRepository;
 import com.example.unittestexample.utils.DateUtils;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -40,30 +43,46 @@ class AlunoServiceTest {
   @Mock private ApplicationProperties applicationProperties;
   @Mock private DateUtils dateUtils;
   @Mock private AlunoPublisher alunoPublisher;
+  @Mock private AlunoMapper mapper;
+  @Mock private TurmaRepository turmaRepository;
 
   @Test
   void salvar_ComAlunoValido_RetornarAlunoSalvo() {
-    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
-    aluno.setId(1L);
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Aluno aluno =
+        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
+    AlunoDto alunoDtoEsperado =
+        new AlunoDto(1L, "Karine", "Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), 1L);
+
     when(applicationProperties.getMaximoIdade()).thenReturn(10);
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
-
     when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(4);
-    when(alunoRepository.findByNomeCompleto(aluno.getNomeCompleto())).thenReturn(Optional.empty());
-    when(alunoRepository.save(aluno)).thenReturn(aluno);
 
-    doNothing().when(alunoPublisher).sendAluno(aluno);
+    when(turmaRepository.findById(1L)).thenReturn(Optional.of(turma));
+    when(alunoRepository.findByNomeCompleto(anyString())).thenReturn(Optional.empty());
+
+    lenient().when(alunoRepository.save(any(Aluno.class))).thenReturn(aluno);
+    lenient().when(mapper.mapearParaAlunoDto(any(Aluno.class))).thenReturn(alunoDtoEsperado);
+    lenient().doNothing().when(alunoPublisher).sendAluno(any(Aluno.class));
 
     Aluno alunoSalvo = alunoService.salvar(aluno);
 
     Assertions.assertNotNull(alunoSalvo);
     Assertions.assertEquals(aluno.getId(), alunoSalvo.getId());
-    verify(alunoRepository, times(1)).save(aluno);
+
+    verify(alunoRepository).save(any(Aluno.class));
+    verify(alunoPublisher, times(1)).sendAluno(any(Aluno.class));
   }
 
   @Test
   void salvar_ComIdadeMenorQueMinima_RetornarIdadeInvalidaException() {
-    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Aluno aluno =
+        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
     when(applicationProperties.getMaximoIdade()).thenReturn(10);
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
@@ -76,7 +95,11 @@ class AlunoServiceTest {
 
   @Test
   void salvar_ComIdadeMaiorQueMaxima_RetornarIdadeInvalidaException() {
-    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Aluno aluno =
+        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
     when(applicationProperties.getMaximoIdade()).thenReturn(10);
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
@@ -89,10 +112,15 @@ class AlunoServiceTest {
 
   @Test
   void salvar_ComNomeRepetido_RetornarAlunoExisteMesmoNomeException() {
-    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Aluno aluno =
+        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
     when(applicationProperties.getMaximoIdade()).thenReturn(10);
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
+    when(turmaRepository.findById(1L)).thenReturn(Optional.of(turma));
     when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(4);
     when(alunoRepository.findByNomeCompleto(aluno.getNomeCompleto()))
         .thenReturn(Optional.of(aluno));
@@ -104,13 +132,22 @@ class AlunoServiceTest {
 
   @Test
   void buscarPorId_ComIdExistente_RetornarAluno() {
-    Aluno aluno = new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
-    when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+    Aluno aluno =
+        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
 
-    Aluno alunoId = alunoService.buscarPorId(1L);
+    when(alunoRepository.findById(1L)).thenReturn(Optional.of(aluno));
+    AlunoDto dtoEsperado =
+        new AlunoDto(1L, "Karine", "Ferreira", Genero.FEMININO, LocalDate.now().minusYears(20), 1L);
+    when(mapper.mapearParaAlunoDto(any(Aluno.class))).thenReturn(dtoEsperado);
+
+    AlunoDto alunoId = alunoService.buscarPorId(aluno.getId());
 
     Assertions.assertNotNull(alunoId);
-    Assertions.assertEquals(aluno, alunoId);
+    Assertions.assertEquals(dtoEsperado.getNome(), alunoId.getNome());
+    Assertions.assertEquals(dtoEsperado.getId(), alunoId.getId());
   }
 
   @Test
@@ -122,9 +159,11 @@ class AlunoServiceTest {
 
   @Test
   void atualizarAluno_ComIdExistente_RetornarAlunoAtualizado() {
-
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
     Aluno alunoAtualizado =
-        new Aluno(1L, "Karine Araujo", Genero.FEMININO, LocalDate.now().minusYears(4L));
+        new Aluno(1L, "Karine Araujo", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
     when(alunoRepository.findById(1L)).thenReturn(Optional.of(alunoAtualizado));
 
     alunoService.atualizarAluno(1L, alunoAtualizado);
@@ -135,8 +174,11 @@ class AlunoServiceTest {
 
   @Test
   void atualizarAluno_ComIdInexistente_RetornarAlunoNaoEncontradoException() {
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
     Aluno alunoAtualizado =
-        new Aluno(99L, "Karine Araujo", Genero.FEMININO, LocalDate.now().minusYears(4L));
+        new Aluno(99L, "Karine Araujo", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
     when(alunoRepository.findById(99L)).thenReturn(Optional.empty());
 
     assertThrows(
@@ -147,8 +189,11 @@ class AlunoServiceTest {
 
   @Test
   void deletarAluno_ComIdExistente_SemRetorno() {
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
     Aluno aluno =
-        new Aluno(null, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+        new Aluno(null, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
     Long alunoId = 1L;
     when(alunoRepository.findById(alunoId)).thenReturn(Optional.of(aluno));
 
@@ -159,8 +204,11 @@ class AlunoServiceTest {
 
   @Test
   void deletarAluno_ComIdInexistente_RetornarAlunoNaoEncontradoException() {
+    Turma turma =
+        new Turma(
+            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
     Aluno aluno =
-        new Aluno(null, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+        new Aluno(null, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
     Long alunoId = 99L;
     when(alunoRepository.findById(alunoId)).thenReturn(Optional.empty());
 
@@ -373,5 +421,59 @@ class AlunoServiceTest {
     verify(dateUtils, times(1)).recuperarDataEmAnos(2);
     verify(dateUtils, times(1)).recuperarDataEmAnos(10);
     verify(alunoRepository, times(1)).findAll(any(Specification.class), eq(pageableEsperado));
+  }
+
+  @Test
+  void transferirAluno_ComOsIdsValidos_RetornarAluno() {
+    Turma turmaNova = new Turma();
+    turmaNova.setId(2L);
+    turmaNova.setNome("TURMA-A1");
+    turmaNova.setAlunos(new ArrayList<>());
+    turmaNova.setLimiteTurma(10);
+
+    Aluno aluno =
+        new Aluno(3L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), null);
+
+    AlunoDto alunoDto =
+        new AlunoDto(
+            3L,
+            "Karine",
+            "Ferreira",
+            Genero.FEMININO,
+            LocalDate.now().minusYears(4L),
+            turmaNova.getId());
+
+    when(alunoRepository.findById(3L)).thenReturn(Optional.of(aluno));
+    when(turmaRepository.findById(2L)).thenReturn(Optional.of(turmaNova));
+    when(alunoRepository.save(any(Aluno.class))).thenReturn(aluno);
+    when(mapper.mapearParaAlunoDto(any(Aluno.class))).thenReturn(alunoDto);
+
+    AlunoDto resultado = alunoService.transferirAluno(3L, 2L);
+
+    Assertions.assertNotNull(resultado);
+    assertEquals(aluno.getId(), resultado.getId());
+    assertEquals(turmaNova, aluno.getTurma());
+
+    verify(alunoRepository, times(1)).save(any(Aluno.class));
+    verify(alunoRepository, times(1)).findById(3L);
+    verify(mapper, times(1)).mapearParaAlunoDto(any(Aluno.class));
+  }
+
+  @Test
+  void transferirAluno_ComTurmaNovaLotada_RetornarTurmaLotadaException() {
+    Turma turmaNova = new Turma();
+    turmaNova.setId(2L);
+    turmaNova.setNome("TURMA-A1");
+    turmaNova.setAlunos(new ArrayList<>());
+    turmaNova.setLimiteTurma(10);
+
+    Aluno aluno =
+        new Aluno(3L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), null);
+
+    when(alunoRepository.findById(3L)).thenReturn(Optional.of(aluno));
+    when(turmaRepository.findById(2L)).thenThrow(TurmaLotadaException.class);
+    assertThrows(
+        TurmaLotadaException.class,
+        () -> alunoService.transferirAluno(aluno.getId(), turmaNova.getId()));
   }
 }

@@ -39,4 +39,6 @@ public class AlunoDto {
   @NotNull(groups = Create.class, message = "A data de nascimento deve ser preenchida")
   @Null(groups = Update.class, message = "A data de nascimento nao deve ser modificada")
   private LocalDate dataNascimento;
+
+  private Long turmaId;
 }

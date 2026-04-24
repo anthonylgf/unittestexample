@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260413-criar-tabela-turma
+      author: karine.brito
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              tableName: TURMA
+      changes:
+        - createTable:
+            tableName: TURMA
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: nome
+                  type: VARCHAR(400)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: horario_inicio
+                  type: TIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: horario_fim
+                  type: TIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: duracao
+                  type: INT
+              - column:
+                  name: limite_turma
+                  type: INT
+                  constraints:
+                    nullable: false
