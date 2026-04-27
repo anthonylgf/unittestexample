@@ -40,11 +40,10 @@ public class AlunoService {
   @Transactional
   @CachePut(value = "alunos", key = "#result.id")
   public Aluno salvar(Aluno aluno) {
-    log.debug("Iniciando processo de salvamento do aluno: {}", aluno.getNomeCompleto());
     // Verificar se a idade do aluno eh valida
     int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
     if (!idadeValida(idadeAluno)) {
-      log.error("Falha ao salvar: idade {} fora do intervalo permitido", idadeAluno);
+      log.warn("Falha ao salvar: idade {} fora do intervalo permitido", idadeAluno);
       throw new IdadeInvalidaException(
           idadeAluno,
           applicationProperties.getMinimoIdade(),
@@ -53,19 +52,11 @@ public class AlunoService {
     // Verificar se nao existe um aluno com o mesmo nome
     Optional<Aluno> alunoMesmoNome = alunoRepository.findByNomeCompleto(aluno.getNomeCompleto());
     if (alunoMesmoNome.isPresent()) {
-      log.error("Já existe um aluno cadastrado com o nome: {}", aluno.getNomeCompleto());
+      log.warn("Já existe um aluno cadastrado com o nome: {}", aluno.getNomeCompleto());
       throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
     }
     Aluno alunoSalvo = alunoRepository.save(aluno);
-    log.info("Aluno salvo no banco com sucesso. ID: {}", alunoSalvo.getId());
-    try {
-      alunoPublisher.sendAluno(alunoSalvo);
-
-      return alunoSalvo;
-    } catch (Exception ex) {
-      log.error("Erro ao enviar para o Kafka", ex);
-      throw ex;
-    }
+    return alunoSalvo;
   }
 
   @CacheEvict(value = "alunos", key = "#id")
