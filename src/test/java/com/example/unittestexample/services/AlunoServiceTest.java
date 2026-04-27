@@ -49,7 +49,9 @@ class AlunoServiceTest {
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
 
     when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(4);
-    lenient().when(alunoRepository.findByNomeCompleto(aluno.getNomeCompleto())).thenReturn(Optional.empty());
+    lenient()
+        .when(alunoRepository.findByNomeCompleto(aluno.getNomeCompleto()))
+        .thenReturn(Optional.empty());
     when(alunoRepository.save(aluno)).thenReturn(aluno);
 
     Aluno alunoSalvo = alunoService.salvar(aluno);
