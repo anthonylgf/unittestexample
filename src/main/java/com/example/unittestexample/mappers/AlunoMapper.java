@@ -16,8 +16,10 @@ public interface AlunoMapper {
 
   Aluno toAluno(AlunoRepresentation representation);
 
+  @Mapping(source = "turmaId", target = "turma.id")
   Aluno mapearParaAluno(AlunoDto alunoDto);
 
+  @Mapping(source = "turma.id", target = "turmaId")
   AlunoDto mapearParaAlunoDto(Aluno aluno);
 
   default Page<AlunoDto> mapearParaAlunoDtoPage(Page<Aluno> alunos) {

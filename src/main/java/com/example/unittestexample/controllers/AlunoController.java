@@ -53,8 +53,8 @@ public class AlunoController {
   @GetMapping("/{id}")
   public ResponseEntity<AlunoDto> buscarPorId(@PathVariable Long id) {
     log.info("Buscando aluno de id {}", id);
-    var aluno = alunoService.buscarPorId(id);
-    var alunoDto = AlunoMapper.INSTANCE.mapearParaAlunoDto(aluno);
+
+    AlunoDto alunoDto = alunoService.buscarPorId(id);
     return ResponseEntity.ok(alunoDto);
   }
 
@@ -67,5 +67,11 @@ public class AlunoController {
     var alunos = alunoService.listarAlunos(filters, pagina, limite);
     var alunosDto = AlunoMapper.INSTANCE.mapearParaAlunoDtoPage(alunos);
     return ResponseEntity.ok(alunosDto);
+  }
+
+  @PatchMapping("/{alunoId}/transferir/{idNovaTurma}")
+  public ResponseEntity<AlunoDto> transferirAluno(
+      @PathVariable Long alunoId, @PathVariable Long idNovaTurma) {
+    return ResponseEntity.ok(alunoService.transferirAluno(alunoId, idNovaTurma));
   }
 }
