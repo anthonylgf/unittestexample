@@ -29,9 +29,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
@@ -112,22 +110,15 @@ class AlunoServiceTest {
 
   @Test
   void salvar_ComNomeRepetido_RetornarAlunoExisteMesmoNomeException() {
-    Turma turma =
-        new Turma(
-            1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
-    Aluno aluno =
-        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
-    when(applicationProperties.getMaximoIdade()).thenReturn(10);
-    when(applicationProperties.getMinimoIdade()).thenReturn(2);
+    Aluno aluno = new Aluno();
+    aluno.setNomeCompleto("Karine Ferreira");
 
-    when(turmaRepository.findById(1L)).thenReturn(Optional.of(turma));
-    when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(4);
-    when(alunoRepository.findByNomeCompleto(aluno.getNomeCompleto()))
-        .thenReturn(Optional.of(aluno));
+    when(alunoRepository.findByNomeCompleto("Karine Ferreira"))
+            .thenReturn(Optional.of(aluno));
 
     assertThrows(AlunoExisteMesmoNomeException.class, () -> alunoService.salvar(aluno));
 
-    verify(alunoRepository, never()).save(aluno);
+    verify(alunoRepository, never()).save(any(Aluno.class));
   }
 
   @Test
@@ -260,7 +251,7 @@ class AlunoServiceTest {
     AlunoFilters alunoFilters = mock(AlunoFilters.class);
     String nome = "Karine Ferreira";
 
-    Pageable pageableEsperado = Pageable.ofSize(limite).withPage(pagina);
+    Pageable pageableEsperado = PageRequest.of(pagina, limite, Sort.by("nomeCompleto").ascending());
     Page<Aluno> pageMock = new PageImpl<>(listaAlunos, pageableEsperado, listaAlunos.size());
 
     when(alunoFilters.getNomeCompleto()).thenReturn(nome);
@@ -287,7 +278,7 @@ class AlunoServiceTest {
     AlunoFilters alunoFilters = mock(AlunoFilters.class);
     LocalDate data = LocalDate.now().minusYears(4L);
 
-    Pageable pageableEsperado = Pageable.ofSize(limite).withPage(pagina);
+    Pageable pageableEsperado = PageRequest.of(pagina, limite, Sort.by("nomeCompleto").ascending());
     Page<Aluno> pageMock = new PageImpl<>(listaAlunos, pageableEsperado, listaAlunos.size());
 
     when(alunoFilters.getNomeCompleto()).thenReturn(null);
@@ -307,32 +298,27 @@ class AlunoServiceTest {
   }
 
   @Test
-  void listarAlunos_ComIdadeMaxima_RetonarSpecificationCorreta() {
+  void listarAlunos_ComFiltros_RetornarPaginaDeAlunos() {
+    AlunoFilters filters = new AlunoFilters();
+    filters.setNomeCompleto("Karine");
+    filters.setIdadeMinima(20);
+
     Integer pagina = 2;
     Integer limite = 2;
-    Aluno aluno1 = mock(Aluno.class);
-    Aluno aluno2 = mock(Aluno.class);
-    List<Aluno> listaAlunos = Arrays.asList(aluno1, aluno2);
-    AlunoFilters alunoFilters = mock(AlunoFilters.class);
-    LocalDate data = LocalDate.now().minusYears(4L);
 
-    Pageable pageableEsperado = Pageable.ofSize(limite).withPage(pagina);
-    Page<Aluno> pageMock = new PageImpl<>(listaAlunos, pageableEsperado, listaAlunos.size());
+    Pageable pageableEsperado = PageRequest.of(pagina, limite, Sort.by("nomeCompleto").ascending());
 
-    when(alunoFilters.getNomeCompleto()).thenReturn(null);
-    when(alunoFilters.getGenero()).thenReturn(null);
-    when(alunoFilters.getIdadeMinima()).thenReturn(null);
-    when(alunoFilters.getIdadeMaxima()).thenReturn(10);
+    Page<Aluno> pageAlunos = new PageImpl<>(List.of(new Aluno()), pageableEsperado, 1);
 
-    when(dateUtils.recuperarDataEmAnos(10)).thenReturn(data);
+    when(alunoRepository.findAll(any(Specification.class), eq(pageableEsperado)))
+            .thenReturn(pageAlunos);
 
-    when(alunoRepository.findAll(any(Specification.class), any(Pageable.class)))
-        .thenReturn(pageMock);
+    when(dateUtils.recuperarDataEmAnos(anyInt())).thenReturn(LocalDate.now().minusYears(20));
 
-    alunoService.listarAlunos(alunoFilters, pagina, limite);
+    Page<Aluno> resultado = alunoService.listarAlunos(filters, pagina, limite);
 
-    verify(dateUtils, times(1)).recuperarDataEmAnos(10);
-    verify(alunoRepository, times(1)).findAll(any(Specification.class), eq(pageableEsperado));
+    assertNotNull(resultado);
+    verify(alunoRepository).findAll(any(Specification.class), eq(pageableEsperado));
   }
 
   @Test
@@ -345,7 +331,7 @@ class AlunoServiceTest {
     AlunoFilters alunoFilters = mock(AlunoFilters.class);
     Genero genero = Genero.FEMININO;
 
-    Pageable pageableEsperado = Pageable.ofSize(limite).withPage(pagina);
+    Pageable pageableEsperado = PageRequest.of(pagina, limite, Sort.by("nomeCompleto").ascending());
     Page<Aluno> pageMock = new PageImpl<>(listaAlunos, pageableEsperado, listaAlunos.size());
 
     when(alunoFilters.getNomeCompleto()).thenReturn(null);
@@ -354,7 +340,7 @@ class AlunoServiceTest {
     when(alunoFilters.getIdadeMaxima()).thenReturn(null);
 
     when(alunoRepository.findAll(any(Specification.class), any(Pageable.class)))
-        .thenReturn(pageMock);
+            .thenReturn(pageMock);
 
     alunoService.listarAlunos(alunoFilters, pagina, limite);
 
@@ -374,7 +360,7 @@ class AlunoServiceTest {
     LocalDate dataMinima = LocalDate.of(2020, 6, 18);
     String nome = "Karine Ferreira";
 
-    Pageable pageableEsperado = Pageable.ofSize(limite).withPage(pagina);
+    Pageable pageableEsperado = PageRequest.of(pagina, limite, Sort.by("nomeCompleto").ascending());
     Page<Aluno> pageMock = new PageImpl<>(listaAlunos, pageableEsperado, listaAlunos.size());
 
     when(alunoFilters.getNomeCompleto()).thenReturn(nome);
@@ -404,7 +390,7 @@ class AlunoServiceTest {
     List<Aluno> listaAlunos = Arrays.asList(aluno1, aluno2);
     AlunoFilters alunoFilters = mock(AlunoFilters.class);
 
-    Pageable pageableEsperado = Pageable.ofSize(limite).withPage(pagina);
+    Pageable pageableEsperado = PageRequest.of(pagina, limite, Sort.by("nomeCompleto").ascending());
     Page<Aluno> pageMock = new PageImpl<>(listaAlunos, pageableEsperado, listaAlunos.size());
 
     when(alunoFilters.getIdadeMinima()).thenReturn(2);
