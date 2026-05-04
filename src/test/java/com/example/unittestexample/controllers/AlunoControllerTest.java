@@ -15,13 +15,17 @@ import com.example.unittestexample.enums.Genero;
 import com.example.unittestexample.exceptions.AlunoExisteMesmoNomeException;
 import com.example.unittestexample.exceptions.AlunoNaoEncontradoException;
 import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
+import com.example.unittestexample.exceptions.TurmaLotadaException;
 import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.models.Aluno;
+import com.example.unittestexample.models.Turma;
 import com.example.unittestexample.repositories.AlunoRepository;
 import com.example.unittestexample.services.AlunoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,8 +60,11 @@ class AlunoControllerTest {
     objectMapper.registerModule(new JavaTimeModule());
   }
 
+  private final Turma turma =
+      new Turma(1L, "TURMA_A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+
   private final Aluno aluno =
-      new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+      new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
 
   @Test
   public void criarAluno_ComDadosValidos_RetornarAlunoComStatus201() throws Exception {
@@ -66,7 +73,8 @@ class AlunoControllerTest {
             + "\"nome\": \"KARINE\","
             + "\"sobrenome\": \"FERREIRA\","
             + "\"genero\": \"FEMININO\","
-            + "\"dataNascimento\": \"31-10-2021\"" // Formato correto!
+            + "\"dataNascimento\": \"31-10-2021\","
+            + "\"turmaId\": \"1\""
             + "}";
 
     Aluno alunoEsperado = new Aluno();
@@ -75,26 +83,14 @@ class AlunoControllerTest {
     alunoEsperado.setGenero(Genero.FEMININO);
     alunoEsperado.setDataNascimento(LocalDate.of(2021, 10, 31));
 
-    when(service.salvar(any(Aluno.class))).thenReturn(alunoEsperado); // Quando
+    when(service.salvar(any(Aluno.class))).thenReturn(alunoEsperado);
 
     testClient
-        .perform(
-            post("/alunos") // simula uma requisição post
-                .contentType(
-                    MediaType
-                        .APPLICATION_JSON) // .Define o cabeçalho Content-Type da requisição enviada
-                // ao controller.
-                .content(
-                    jsonDeEntrada) // Define o corpo (body) da requisição HTTP que será enviada.
-            )
-        .andExpect(status().isCreated()); // Verifica se o status HTTP da resposta foi o esperado.
+        .perform(post("/alunos").contentType(MediaType.APPLICATION_JSON).content(jsonDeEntrada))
+        .andExpect(status().isCreated());
     Assertions.assertEquals("KARINE FERREIRA", alunoEsperado.getNomeCompleto());
     Assertions.assertEquals(LocalDate.of(2021, 10, 31), alunoEsperado.getDataNascimento());
-    verify(service)
-        .salvar(
-            alunoCaptor
-                .capture()); // Confirma que o metodo salvar() no service foi chamado exatamente //
-    // uma vez durante a execução da requisição HTTP
+    verify(service).salvar(alunoCaptor.capture());
   }
 
   @Test
@@ -122,7 +118,8 @@ class AlunoControllerTest {
             + "\"nome\": \"KARINE\","
             + "\"sobrenome\": \"FERREIRA\","
             + "\"genero\": \"FEMININO\","
-            + "\"dataNascimento\": \"31-10-2021\""
+            + "\"dataNascimento\": \"31-10-2021\","
+            + "\"turmaId\": \"1\""
             + "}";
     when(service.salvar(any(Aluno.class))).thenThrow(AlunoExisteMesmoNomeException.class);
 
@@ -137,7 +134,8 @@ class AlunoControllerTest {
   public void alterarAluno_ComIdExistentes_RetornarStatus204() throws Exception {
     Long aluno_id = 1L;
 
-    String jsonDeEntrada = "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\"" + "}";
+    String jsonDeEntrada =
+        "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\"," + "\"turmaId\": \"1\"" + "}";
 
     doNothing().when(service).atualizarAluno(eq(aluno_id), any(Aluno.class));
 
@@ -158,7 +156,8 @@ class AlunoControllerTest {
   public void atualizarAluno_ComIdInexistentes_RetornarErroMessage404() throws Exception {
     Long aluno_id = 99L;
 
-    String jsonDeEntrada = "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\"" + "}";
+    String jsonDeEntrada =
+        "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\"," + "\"turmaId\": \"1\"" + "}";
 
     doThrow(new AlunoNaoEncontradoException(aluno_id))
         .when(service)
@@ -171,7 +170,7 @@ class AlunoControllerTest {
                 .content(jsonDeEntrada))
         .andExpect(status().isNotFound());
     System.out.println("Id não encontrado");
-    verify(service).atualizarAluno(eq(aluno_id), any(Aluno.class)); // eq
+    verify(service).atualizarAluno(eq(aluno_id), any(Aluno.class));
   }
 
   @Test
@@ -220,16 +219,15 @@ class AlunoControllerTest {
 
   @Test
   public void buscarAluno_ComIdExistente_RetornarAlunoComStatus200() throws Exception {
-    String jsonDeEntrada =
-        "{"
-            + "\"nome\": \"KARINE\","
-            + "\"sobrenome\": \"FERREIRA\","
-            + "\"genero\": \"FEMININO\","
-            + "\"dataNascimento\": \"31-10-2021\""
-            + "}";
-
+    AlunoDto alunoTeste = new AlunoDto();
+    alunoTeste.setId(1L);
+    alunoTeste.setNome("KARINE");
+    alunoTeste.setSobrenome("FERREIRA");
+    alunoTeste.setGenero(Genero.FEMININO);
+    alunoTeste.setDataNascimento(LocalDate.now().minusYears(4L));
+    alunoTeste.setTurmaId(turma.getId());
     Long id = 1L;
-    when(service.buscarPorId(any(Long.class))).thenReturn(aluno);
+    when(service.buscarPorId(any(Long.class))).thenReturn(alunoTeste);
 
     testClient.perform(get("/alunos/{id}", id)).andExpect(status().isOk());
     verify(service).buscarPorId(id);
@@ -242,7 +240,7 @@ class AlunoControllerTest {
     Integer limite = 10;
 
     Aluno alunoComId =
-        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L));
+        new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
 
     Page<Aluno> pageAluno;
     pageAluno = new PageImpl<>(List.of(alunoComId));
@@ -289,5 +287,53 @@ class AlunoControllerTest {
     System.out.println("Parametros de listagem invalidos");
 
     verify(service).listarAlunos(any(AlunoFilters.class), eq(pagina), eq(limite));
+  }
+
+  @Test
+  public void trasferirAlunoDeTurma_DadosValidos_RetornarStatus200() throws Exception {
+
+    Turma turmaNova =
+        new Turma(
+            2L, "TURMA-A2", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
+
+    Long alunoId = 1L;
+
+    AlunoDto alunoTransferido =
+        new AlunoDto(
+            alunoId,
+            "Karine",
+            "Ferreira",
+            Genero.FEMININO,
+            LocalDate.now().minusYears(4L),
+            turmaNova.getId());
+
+    when(service.transferirAluno(eq(alunoId), eq(turmaNova.getId()))).thenReturn(alunoTransferido);
+
+    testClient
+        .perform(
+            patch("/alunos/{alunoId}/transferir/{idNovaTurma}", alunoId, turmaNova.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(alunoId))
+        .andExpect(jsonPath("$.turmaId").value(2));
+  }
+
+  @Test
+  public void trasferirAlunoDeTurma_TurmaNovaLotada_RetornarStatus409() throws Exception {
+
+    Turma turmaNova =
+        new Turma(
+            2L, "TURMA-A2", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 1, new ArrayList<>());
+
+    Long alunoId = 1L;
+
+    when(service.transferirAluno(eq(alunoId), eq(turmaNova.getId())))
+        .thenThrow(TurmaLotadaException.class);
+
+    testClient
+        .perform(
+            patch("/alunos/{alunoId}/transferir/{idNovaTurma}", alunoId, turmaNova.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isConflict());
   }
 }

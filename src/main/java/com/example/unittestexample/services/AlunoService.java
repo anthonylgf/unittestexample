@@ -3,23 +3,20 @@ package com.example.unittestexample.services;
 import static java.util.Objects.*;
 
 import com.example.unittestexample.configs.ApplicationProperties;
+import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.dtos.AlunoFilters;
-import com.example.unittestexample.exceptions.AlunoExisteMesmoNomeException;
-import com.example.unittestexample.exceptions.AlunoNaoEncontradoException;
-import com.example.unittestexample.exceptions.IdadeInvalidaException;
-import com.example.unittestexample.exceptions.ParametrosListagemInvalidosException;
+import com.example.unittestexample.exceptions.*;
 import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.models.Aluno;
+import com.example.unittestexample.models.Turma;
 import com.example.unittestexample.publisher.AlunoPublisher;
 import com.example.unittestexample.repositories.AlunoRepository;
 import com.example.unittestexample.repositories.AlunoSpecificationFactory;
+import com.example.unittestexample.repositories.TurmaRepository;
 import com.example.unittestexample.utils.DateUtils;
 import java.util.ArrayList;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,37 +26,52 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AlunoService {
 
   private final AlunoRepository alunoRepository;
   private final ApplicationProperties applicationProperties;
   private final DateUtils dateUtils;
   private final AlunoPublisher alunoPublisher;
+  private final TurmaRepository turmaRepository;
+  private final AlunoMapper mapper;
 
   @Transactional
-  @CachePut(value = "alunos", key = "#result.id")
   public Aluno salvar(Aluno aluno) {
     // Verificar se a idade do aluno eh valida
     int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
     if (!idadeValida(idadeAluno)) {
-      log.warn("Falha ao salvar: idade {} fora do intervalo permitido", idadeAluno);
       throw new IdadeInvalidaException(
           idadeAluno,
           applicationProperties.getMinimoIdade(),
           applicationProperties.getMaximoIdade());
     }
+    if (aluno.getTurma() == null) {
+      throw new TurmaObrigatoriaException();
+    }
+
+    Turma turma =
+        turmaRepository
+            .findById(aluno.getTurma().getId())
+            .orElseThrow(() -> new TurmaNaoEncontradaException(aluno.getTurma().getId()));
+
+    if (turma.getAlunos().size() >= turma.getLimiteTurma()) {
+      throw new TurmaLotadaException(turma.getNome(), turma.getLimiteTurma());
+    }
+
+    aluno.setTurma(turma);
+
     // Verificar se nao existe um aluno com o mesmo nome
     Optional<Aluno> alunoMesmoNome = alunoRepository.findByNomeCompleto(aluno.getNomeCompleto());
     if (alunoMesmoNome.isPresent()) {
-      log.warn("Já existe um aluno cadastrado com o nome: {}", aluno.getNomeCompleto());
       throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
     }
     Aluno alunoSalvo = alunoRepository.save(aluno);
+
+    alunoPublisher.sendAluno(alunoSalvo);
+
     return alunoSalvo;
   }
 
-  @CacheEvict(value = "alunos", key = "#id")
   public void atualizarAluno(Long id, Aluno aluno) {
     Aluno alunoSalvo =
         alunoRepository.findById(id).orElseThrow(() -> new AlunoNaoEncontradoException(id));
@@ -68,7 +80,6 @@ public class AlunoService {
     alunoRepository.save(alunoSalvo);
   }
 
-  @CacheEvict(value = "alunos", key = "#id")
   public void deletarAluno(Long id) {
     Aluno alunoSalvo =
         alunoRepository.findById(id).orElseThrow(() -> new AlunoNaoEncontradoException(id));
@@ -77,8 +88,11 @@ public class AlunoService {
   }
 
   @Cacheable(value = "alunos", key = "#id")
-  public Aluno buscarPorId(Long id) {
-    return alunoRepository.findById(id).orElseThrow(() -> new AlunoNaoEncontradoException(id));
+  public AlunoDto buscarPorId(Long id) {
+    Aluno aluno =
+        alunoRepository.findById(id).orElseThrow(() -> new AlunoNaoEncontradoException(id));
+
+    return mapper.mapearParaAlunoDto(aluno);
   }
 
   public Page<Aluno> listarAlunos(AlunoFilters filters, Integer pagina, Integer limite) {
@@ -132,5 +146,28 @@ public class AlunoService {
     requireNonNull(pagina, "pagina nao pode ser nulo.");
     requireNonNull(limite, "limite nao pode ser nulo.");
     return Pageable.ofSize(limite).withPage(pagina);
+  }
+
+  @Transactional
+  public AlunoDto transferirAluno(Long alunoId, Long novaTurmaId) {
+    Aluno aluno =
+        alunoRepository
+            .findById(alunoId)
+            .orElseThrow(() -> new AlunoNaoEncontradoException(alunoId));
+
+    Turma novaTurma =
+        turmaRepository
+            .findById(novaTurmaId)
+            .orElseThrow(() -> new TurmaNaoEncontradaException(novaTurmaId));
+
+    int alunosMatriculados = novaTurma.getAlunos().size();
+    if (alunosMatriculados >= novaTurma.getLimiteTurma()) {
+      throw new TurmaLotadaException(novaTurma.getNome(), novaTurma.getLimiteTurma());
+    }
+
+    aluno.setTurma(novaTurma);
+    Aluno alunoSalvo = alunoRepository.save(aluno);
+
+    return mapper.mapearParaAlunoDto(alunoSalvo);
   }
 }
