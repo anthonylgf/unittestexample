@@ -1,5 +1,7 @@
 package com.example.unittestexample.controllers;
 
+import static net.logstash.logback.argument.StructuredArguments.keyValue;
+
 import com.example.unittestexample.annotations.Create;
 import com.example.unittestexample.annotations.Update;
 import com.example.unittestexample.dtos.AlunoDto;
@@ -29,9 +31,10 @@ public class AlunoController {
   @PostMapping
   public ResponseEntity<AlunoDto> cadastrarAluno(
       @Validated(Create.class) @RequestBody AlunoDto alunoDto) {
-    log.info("Cadastrando aluno: {}", alunoDto);
+    log.info("Cadastrando aluno", keyValue("nome", alunoDto.getNome()));
     var alunoSalvo = alunoService.salvar(AlunoMapper.INSTANCE.mapearParaAluno(alunoDto));
     var alunoSalvoDto = AlunoMapper.INSTANCE.mapearParaAlunoDto(alunoSalvo);
+    log.info("Aluno criado com sucesso. ID gerado: {}", alunoSalvo.getId());
     return ResponseEntity.status(HttpStatus.CREATED).body(alunoSalvoDto);
   }
 
