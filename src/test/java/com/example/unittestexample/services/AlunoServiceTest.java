@@ -113,8 +113,7 @@ class AlunoServiceTest {
     Aluno aluno = new Aluno();
     aluno.setNomeCompleto("Karine Ferreira");
 
-    when(alunoRepository.findByNomeCompleto("Karine Ferreira"))
-            .thenReturn(Optional.of(aluno));
+    when(alunoRepository.findByNomeCompleto("Karine Ferreira")).thenReturn(Optional.of(aluno));
 
     assertThrows(AlunoExisteMesmoNomeException.class, () -> alunoService.salvar(aluno));
 
@@ -311,7 +310,7 @@ class AlunoServiceTest {
     Page<Aluno> pageAlunos = new PageImpl<>(List.of(new Aluno()), pageableEsperado, 1);
 
     when(alunoRepository.findAll(any(Specification.class), eq(pageableEsperado)))
-            .thenReturn(pageAlunos);
+        .thenReturn(pageAlunos);
 
     when(dateUtils.recuperarDataEmAnos(anyInt())).thenReturn(LocalDate.now().minusYears(20));
 
@@ -340,7 +339,7 @@ class AlunoServiceTest {
     when(alunoFilters.getIdadeMaxima()).thenReturn(null);
 
     when(alunoRepository.findAll(any(Specification.class), any(Pageable.class)))
-            .thenReturn(pageMock);
+        .thenReturn(pageMock);
 
     alunoService.listarAlunos(alunoFilters, pagina, limite);
 
