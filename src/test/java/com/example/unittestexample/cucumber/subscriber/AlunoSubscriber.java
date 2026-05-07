@@ -5,10 +5,9 @@ import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.services.AlunoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @Getter
+@Setter
 @RequiredArgsConstructor
 public class AlunoSubscriber {
 
@@ -24,9 +24,7 @@ public class AlunoSubscriber {
   private final AlunoService service;
   private final AlunoMapper alunoMapper;
 
-  private final BlockingQueue<String> mensagensEnviadas = new LinkedBlockingQueue<>();
-
-  private final java.util.List<String> mensagensRecebidas = new ArrayList<>();
+  private java.util.List<String> mensagensRecebidas = new ArrayList<>();
 
   @KafkaListener(
       groupId = "${spring.kafka.consumer.group-id}",

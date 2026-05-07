@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -64,14 +64,14 @@ public class AlunoController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<AlunoDto>> listarAlunos(
+  public ResponseEntity<PagedModel<AlunoDto>> listarAlunos(
       @Valid AlunoFilters filters,
       @RequestParam @PositiveOrZero Integer pagina,
       @RequestParam @Positive Integer limite) {
     log.info("Listando alunos com filtros: {}, pagina: {}, limite: {}", filters, pagina, limite);
     var alunos = alunoService.listarAlunos(filters, pagina, limite);
     var alunosDto = alunoMapper.mapearParaAlunoDtoPage(alunos);
-    return ResponseEntity.ok(alunosDto);
+    return ResponseEntity.ok(new PagedModel<>(alunosDto));
   }
 
   @PatchMapping("/{alunoId}/transferir/{idNovaTurma}")

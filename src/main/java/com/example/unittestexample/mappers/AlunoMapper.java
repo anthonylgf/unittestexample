@@ -28,6 +28,7 @@ public interface AlunoMapper {
   }
 
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "turma", ignore = true)
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   void merge(Aluno source, @MappingTarget Aluno target);
 

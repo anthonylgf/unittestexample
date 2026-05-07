@@ -6,17 +6,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 public class PaginaAlunos {
 
   private List<AlunoDto> content;
   private PageMetadata page;
 
+  @Data
   @NoArgsConstructor
   @AllArgsConstructor
-  @Data
   public static class PageMetadata {
     private int size;
     private int number;
