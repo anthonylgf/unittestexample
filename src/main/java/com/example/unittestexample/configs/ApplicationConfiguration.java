@@ -1,11 +1,10 @@
 package com.example.unittestexample.configs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
 @Configuration
@@ -15,11 +14,7 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 public class ApplicationConfiguration {
 
   @Bean
-  @Primary
-  public ObjectMapper objectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new JavaTimeModule());
-
-    return mapper;
+  public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+    return builder -> builder.modulesToInstall(new JavaTimeModule());
   }
 }

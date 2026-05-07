@@ -25,4 +25,4 @@ import org.springframework.boot.test.context.SpringBootTest;
       value =
           "com.example.unittestexample.cucumber.steps,com.example.unittestexample.cucumber.configuration"),
 })
-public class TestRunner {}
+public class IntegrationRunnerTest {}

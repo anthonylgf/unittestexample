@@ -6,13 +6,10 @@ import com.example.unittestexample.dtos.AlunoDto;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.subscriber.representation.AlunoRepresentation;
 import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.Page;
 
 @Mapper(componentModel = "spring")
 public interface AlunoMapper {
-
-  AlunoMapper INSTANCE = Mappers.getMapper(AlunoMapper.class);
 
   Aluno toAluno(AlunoRepresentation representation);
 
@@ -31,6 +28,7 @@ public interface AlunoMapper {
   }
 
   @Mapping(target = "id", ignore = true)
+  @Mapping(target = "turma", ignore = true)
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   void merge(Aluno source, @MappingTarget Aluno target);
 

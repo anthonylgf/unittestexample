@@ -10,7 +10,6 @@ import com.example.unittestexample.mappers.AlunoMapper;
 import com.example.unittestexample.mappers.TurmaMapper;
 import com.example.unittestexample.models.Aluno;
 import com.example.unittestexample.models.Turma;
-import com.example.unittestexample.repositories.AlunoRepository;
 import com.example.unittestexample.repositories.TurmaRepository;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -26,14 +25,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 
 @ExtendWith(MockitoExtension.class)
-public class TurmaServiceTest {
+class TurmaServiceTest {
 
-  @Mock private TurmaRepository turmaRepository;
-  @Mock private AlunoRepository alunoRepository;
-  @Mock private AlunoMapper alunoMapper;
-  @Mock private TurmaMapper turmaMapper;
+  @Mock TurmaRepository turmaRepository;
+  @Mock AlunoMapper alunoMapper;
+  @Mock TurmaMapper turmaMapper;
 
-  @InjectMocks private TurmaService turmaService;
+  @InjectMocks TurmaService turmaService;
 
   @Test
   void salvarTurma_ComDadosValidos_RetornarTurmaSalva() {

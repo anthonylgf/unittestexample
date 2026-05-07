@@ -27,7 +27,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest({TurmaController.class, GlobalExceptionHandler.class})
-public class TurmaControllerTest {
+class TurmaControllerTest {
 
   @MockitoBean TurmaService turmaService;
 
@@ -36,7 +36,7 @@ public class TurmaControllerTest {
   @MockitoBean TurmaMapper turmaMapper;
 
   @Test
-  public void cadastrarTurma_ComDadosValidos_RetornarTurmaComStatus201() throws Exception {
+  void cadastrarTurma_ComDadosValidos_RetornarTurmaComStatus201() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"TURMA-A1\","
@@ -62,7 +62,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void cadastrarTurma_ComDadosInvalidos_RetornarTurmaComStatus400() throws Exception {
+  void cadastrarTurma_ComDadosInvalidos_RetornarTurmaComStatus400() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"TURMA_A1\","
@@ -77,7 +77,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void cadastrarTurma_ComDadosJaExistentes_RetornarTurmaComStatus409() throws Exception {
+  void cadastrarTurma_ComDadosJaExistentes_RetornarTurmaComStatus409() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"TURMA-A1\","
@@ -96,7 +96,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void cadastrarTurma_ComDuracaoMaiorQuePermitida_RetornarStatus400() throws Exception {
+  void cadastrarTurma_ComDuracaoMaiorQuePermitida_RetornarStatus400() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"TURMA-A1\","
@@ -114,7 +114,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void cadastrarTurma_ComFimAntesDoInicio_RetornarStatus400() throws Exception {
+  void cadastrarTurma_ComFimAntesDoInicio_RetornarStatus400() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"TURMA-A1\","
@@ -135,7 +135,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void listarTurmas_ComDadosValidos_RetornarTurmasStatus201() throws Exception {
+  void listarTurmas_ComDadosValidos_RetornarTurmasStatus201() throws Exception {
     Integer pagina = 0;
     Integer limite = 10;
 
@@ -160,7 +160,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void listarTurmas_ComDadosInvalidos_RetornarTurmasStatus400() throws Exception {
+  void listarTurmas_ComDadosInvalidos_RetornarTurmasStatus400() throws Exception {
     Integer pagina = 99;
     Integer limite = 99;
 
@@ -182,7 +182,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void buscarTurma_ComDadosValidos_RetornarTurmasStatus201() throws Exception {
+  void buscarTurma_ComDadosValidos_RetornarTurmasStatus201() throws Exception {
     Turma turmaRetornada =
         new Turma(
             1L, "TURMA-A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
@@ -193,7 +193,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void buscarTurma_ComIdInvalido_RetornarTurmasStatus404() throws Exception {
+  void buscarTurma_ComIdInvalido_RetornarTurmasStatus404() throws Exception {
 
     Long turmaRetornada = 99L;
 
@@ -203,7 +203,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void deletarTurma_ComDadosValidos_RetornarTurmasStatus201() throws Exception {
+  void deletarTurma_ComDadosValidos_RetornarTurmasStatus201() throws Exception {
     Turma turmaRetornada =
         new Turma(
             1L, "TURMA-A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
@@ -216,7 +216,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void deletarTurma_PossuindoAlunosNaTurma_RetornarStatus409() throws Exception {
+  void deletarTurma_PossuindoAlunosNaTurma_RetornarStatus409() throws Exception {
     Turma turmaRetornada =
         new Turma(
             1L, "TURMA-A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
@@ -230,7 +230,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void deletarTurma_TurmaNaoEncontrado_RetornarStatus400() throws Exception {
+  void deletarTurma_TurmaNaoEncontrado_RetornarStatus400() throws Exception {
     Turma turmaRetornada =
         new Turma(
             99L, "TURMA-A1", LocalTime.of(19, 0), LocalTime.of(21, 0), 2, 30, new ArrayList<>());
@@ -244,7 +244,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void alterarTurma_ComDadosValidos_RetornarStatus200() throws Exception {
+  void alterarTurma_ComDadosValidos_RetornarStatus200() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"TURMA-A1\","
@@ -267,7 +267,7 @@ public class TurmaControllerTest {
   }
 
   @Test
-  public void alterarTurma_ComIdInvalido_RetornarStatus404() throws Exception {
+  void alterarTurma_ComIdInvalido_RetornarStatus404() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"TURMA-A1\","

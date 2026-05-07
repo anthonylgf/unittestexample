@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -28,12 +28,14 @@ public class AlunoController {
 
   private final AlunoService alunoService;
 
+  private final AlunoMapper alunoMapper;
+
   @PostMapping
   public ResponseEntity<AlunoDto> cadastrarAluno(
       @Validated(Create.class) @RequestBody AlunoDto alunoDto) {
     log.info("Cadastrando aluno", keyValue("nome", alunoDto.getNome()));
-    var alunoSalvo = alunoService.salvar(AlunoMapper.INSTANCE.mapearParaAluno(alunoDto));
-    var alunoSalvoDto = AlunoMapper.INSTANCE.mapearParaAlunoDto(alunoSalvo);
+    var alunoSalvo = alunoService.salvar(alunoMapper.mapearParaAluno(alunoDto));
+    var alunoSalvoDto = alunoMapper.mapearParaAlunoDto(alunoSalvo);
     log.info("Aluno criado com sucesso. ID gerado: {}", alunoSalvo.getId());
     return ResponseEntity.status(HttpStatus.CREATED).body(alunoSalvoDto);
   }
@@ -42,7 +44,7 @@ public class AlunoController {
   public ResponseEntity<Void> atualizarAluno(
       @PathVariable Long id, @Validated(Update.class) @RequestBody AlunoDto alunoDto) {
     log.info("Atualizando aluno de id {}, com os valores: {}", id, alunoDto);
-    alunoService.atualizarAluno(id, AlunoMapper.INSTANCE.mapearParaAluno(alunoDto));
+    alunoService.atualizarAluno(id, alunoMapper.mapearParaAluno(alunoDto));
     return ResponseEntity.noContent().build();
   }
 
@@ -62,14 +64,14 @@ public class AlunoController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<AlunoDto>> listarAlunos(
+  public ResponseEntity<PagedModel<AlunoDto>> listarAlunos(
       @Valid AlunoFilters filters,
       @RequestParam @PositiveOrZero Integer pagina,
       @RequestParam @Positive Integer limite) {
     log.info("Listando alunos com filtros: {}, pagina: {}, limite: {}", filters, pagina, limite);
     var alunos = alunoService.listarAlunos(filters, pagina, limite);
-    var alunosDto = AlunoMapper.INSTANCE.mapearParaAlunoDtoPage(alunos);
-    return ResponseEntity.ok(alunosDto);
+    var alunosDto = alunoMapper.mapearParaAlunoDtoPage(alunos);
+    return ResponseEntity.ok(new PagedModel<>(alunosDto));
   }
 
   @PatchMapping("/{alunoId}/transferir/{idNovaTurma}")

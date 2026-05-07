@@ -12,7 +12,7 @@ public final class AlunoSpecificationFactory {
 
   public static Specification<Aluno> nomeCompletoIgualA(String nomeCompleto) {
     return (root, query, criteriaBuilder) ->
-        criteriaBuilder.equal(root.get("nome_completo"), nomeCompleto.toUpperCase());
+        criteriaBuilder.equal(root.get("nomeCompleto"), nomeCompleto.toUpperCase());
   }
 
   public static Specification<Aluno> dataNascimentoMaiorIgualA(LocalDate dataNascimento) {

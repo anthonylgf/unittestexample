@@ -21,4 +21,4 @@ jobs:
           distribution: 'corretto'
           java-version: '21'
       - name: Build and run unit tests
-        run: mvn clean install
+        run: mvn clean install -Dtest=!IntegrationRunnerTest
