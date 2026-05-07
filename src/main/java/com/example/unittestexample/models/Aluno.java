@@ -18,7 +18,12 @@ import lombok.*;
 @Getter
 @Setter
 @Entity
-@Table(name = "ALUNO")
+@Table(
+    name = "ALUNO",
+    indexes = {
+      @Index(name = "idx_aluno_nome", columnList = "nome_completo"),
+      @Index(name = "idx_turma_id", columnList = "turma_id")
+    })
 public class Aluno {
 
   @Id @GeneratedValue private Long id;

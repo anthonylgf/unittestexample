@@ -10,4 +10,5 @@ public class AlunoFilters {
   @PositiveOrZero private Integer idadeMinima;
   @PositiveOrZero private Integer idadeMaxima;
   private Genero genero;
+  private Long turmaId;
 }

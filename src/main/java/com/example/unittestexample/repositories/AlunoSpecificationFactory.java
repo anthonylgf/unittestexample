@@ -28,4 +28,13 @@ public final class AlunoSpecificationFactory {
   public static Specification<Aluno> generoIgualA(Genero genero) {
     return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("genero"), genero);
   }
+
+  public static Specification<Aluno> turmaIgualA(Long turmaId) {
+    return (root, query, cb) -> {
+      if (turmaId == null) {
+        return null;
+      }
+      return cb.equal(root.get("turma").get("id"), turmaId);
+    };
+  }
 }

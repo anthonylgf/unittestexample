@@ -19,7 +19,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,13 @@ public class AlunoService {
 
   @Transactional
   public Aluno salvar(Aluno aluno) {
+
+    // Verificar se nao existe um aluno com o mesmo nome
+    Optional<Aluno> alunoMesmoNome = alunoRepository.findByNomeCompleto(aluno.getNomeCompleto());
+    if (alunoMesmoNome.isPresent()) {
+      throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
+    }
+
     // Verificar se a idade do aluno eh valida
     int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
     if (!idadeValida(idadeAluno)) {
@@ -60,11 +69,6 @@ public class AlunoService {
 
     aluno.setTurma(turma);
 
-    // Verificar se nao existe um aluno com o mesmo nome
-    Optional<Aluno> alunoMesmoNome = alunoRepository.findByNomeCompleto(aluno.getNomeCompleto());
-    if (alunoMesmoNome.isPresent()) {
-      throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
-    }
     Aluno alunoSalvo = alunoRepository.save(aluno);
 
     alunoPublisher.sendAluno(alunoSalvo);
@@ -109,6 +113,10 @@ public class AlunoService {
           AlunoSpecificationFactory.nomeCompletoIgualA(filters.getNomeCompleto()));
     }
 
+    if (nonNull(filters.getTurmaId())) {
+      specificationList.add(AlunoSpecificationFactory.turmaIgualA(filters.getTurmaId()));
+    }
+
     if (nonNull(filters.getIdadeMinima())) {
       var dataNascimento = dateUtils.recuperarDataEmAnos(filters.getIdadeMinima());
       specificationList.add(AlunoSpecificationFactory.dataNascimentoMenorIgualA(dataNascimento));
@@ -145,7 +153,7 @@ public class AlunoService {
   private Pageable recuperarPaginacao(Integer pagina, Integer limite) {
     requireNonNull(pagina, "pagina nao pode ser nulo.");
     requireNonNull(limite, "limite nao pode ser nulo.");
-    return Pageable.ofSize(limite).withPage(pagina);
+    return PageRequest.of(pagina, limite, Sort.by("nomeCompleto").ascending());
   }
 
   @Transactional
