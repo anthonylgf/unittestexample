@@ -18,7 +18,7 @@ jobs:
           distribution: 'corretto'
           java-version: '21'
       - name: Initialize Docker Infrastructure
-        run: docker compose up --build --wait
+        run: docker compose up --build -d
       - name: Run the cucumber test
         run:  mvn test -Dtest=IntegrationRunnerTest
       - name: Upload Cucumber Report
