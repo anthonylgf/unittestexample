@@ -83,7 +83,8 @@ class AlunoControllerTest {
     alunoEsperado.setGenero(Genero.FEMININO);
     alunoEsperado.setDataNascimento(LocalDate.of(2021, 10, 31));
 
-    when(service.salvar(any(Aluno.class))).thenReturn(alunoEsperado);
+    doReturn(alunoEsperado).when(alunoMapper).mapearParaAluno(any(AlunoDto.class));
+    doReturn(alunoEsperado).when(service).salvar(any(Aluno.class));
 
     testClient
         .perform(post("/alunos").contentType(MediaType.APPLICATION_JSON).content(jsonDeEntrada))
@@ -121,6 +122,7 @@ class AlunoControllerTest {
             + "\"dataNascimento\": \"31-10-2021\","
             + "\"turmaId\": \"1\""
             + "}";
+    doReturn(new Aluno()).when(alunoMapper).mapearParaAluno(any(AlunoDto.class));
     when(service.salvar(any(Aluno.class))).thenThrow(AlunoExisteMesmoNomeException.class);
 
     testClient
@@ -137,6 +139,9 @@ class AlunoControllerTest {
     String jsonDeEntrada =
         "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\"," + "\"turmaId\": \"1\"" + "}";
 
+    Aluno alunoEsperado = new Aluno();
+    alunoEsperado.setNomeCompleto("JOSE WILLIAM");
+    doReturn(alunoEsperado).when(alunoMapper).mapearParaAluno(any(AlunoDto.class));
     doNothing().when(service).atualizarAluno(eq(aluno_id), any(Aluno.class));
 
     testClient
@@ -159,6 +164,7 @@ class AlunoControllerTest {
     String jsonDeEntrada =
         "{" + "\"nome\": \"JOSE\"," + "\"sobrenome\": \"WILLIAM\"," + "\"turmaId\": \"1\"" + "}";
 
+    doReturn(new Aluno()).when(alunoMapper).mapearParaAluno(any(AlunoDto.class));
     doThrow(new AlunoNaoEncontradoException(aluno_id))
         .when(service)
         .atualizarAluno(eq(aluno_id), any(Aluno.class));

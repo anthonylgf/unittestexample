@@ -76,7 +76,7 @@ public class AlunoService {
     Aluno alunoSalvo =
         alunoRepository.findById(id).orElseThrow(() -> new AlunoNaoEncontradoException(id));
 
-    AlunoMapper.INSTANCE.merge(aluno, alunoSalvo);
+    mapper.merge(aluno, alunoSalvo);
     alunoRepository.save(alunoSalvo);
   }
 

@@ -12,8 +12,6 @@ import org.springframework.data.domain.Page;
 @Mapper(componentModel = "spring")
 public interface AlunoMapper {
 
-  AlunoMapper INSTANCE = Mappers.getMapper(AlunoMapper.class);
-
   Aluno toAluno(AlunoRepresentation representation);
 
   @Mapping(source = "turmaId", target = "turma.id")
