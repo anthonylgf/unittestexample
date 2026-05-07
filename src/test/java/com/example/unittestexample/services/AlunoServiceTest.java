@@ -37,14 +37,14 @@ import org.springframework.data.jpa.domain.Specification;
 @ExtendWith(MockitoExtension.class)
 class AlunoServiceTest {
 
-  @InjectMocks private AlunoService alunoService;
+  @InjectMocks AlunoService alunoService;
 
-  @Mock private AlunoRepository alunoRepository;
-  @Mock private ApplicationProperties applicationProperties;
-  @Mock private DateUtils dateUtils;
-  @Mock private AlunoPublisher alunoPublisher;
-  @Mock private AlunoMapper mapper;
-  @Mock private TurmaRepository turmaRepository;
+  @Mock AlunoRepository alunoRepository;
+  @Mock ApplicationProperties applicationProperties;
+  @Mock DateUtils dateUtils;
+  @Mock AlunoPublisher alunoPublisher;
+  @Mock AlunoMapper mapper;
+  @Mock TurmaRepository turmaRepository;
 
   @Test
   void salvar_ComAlunoValido_RetornarAlunoSalvo() {

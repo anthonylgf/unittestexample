@@ -43,7 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(AlunoController.class)
 class AlunoControllerTest {
 
-  @Autowired private ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
   @MockitoBean AlunoRepository repository;
 
@@ -53,7 +53,7 @@ class AlunoControllerTest {
 
   @Autowired MockMvc testClient;
 
-  @Captor private ArgumentCaptor<Aluno> alunoCaptor;
+  @Captor ArgumentCaptor<Aluno> alunoCaptor;
 
   @BeforeEach
   void setup() {
@@ -67,7 +67,7 @@ class AlunoControllerTest {
       new Aluno(1L, "Karine Ferreira", Genero.FEMININO, LocalDate.now().minusYears(4L), turma);
 
   @Test
-  public void criarAluno_ComDadosValidos_RetornarAlunoComStatus201() throws Exception {
+  void criarAluno_ComDadosValidos_RetornarAlunoComStatus201() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"KARINE\","
@@ -95,7 +95,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void criarAluno_dataNascimentoInvalida_RetornarErroMessage400() throws Exception {
+  void criarAluno_dataNascimentoInvalida_RetornarErroMessage400() throws Exception {
 
     String jsonDeEntrada =
         "{"
@@ -113,7 +113,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void criarAluno_ComDadosJaExistentes_RetornarErroMessage409() throws Exception {
+  void criarAluno_ComDadosJaExistentes_RetornarErroMessage409() throws Exception {
     String jsonDeEntrada =
         "{"
             + "\"nome\": \"KARINE\","
@@ -133,7 +133,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void alterarAluno_ComIdExistentes_RetornarStatus204() throws Exception {
+  void alterarAluno_ComIdExistentes_RetornarStatus204() throws Exception {
     Long aluno_id = 1L;
 
     String jsonDeEntrada =
@@ -158,7 +158,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void atualizarAluno_ComIdInexistentes_RetornarErroMessage404() throws Exception {
+  void atualizarAluno_ComIdInexistentes_RetornarErroMessage404() throws Exception {
     Long aluno_id = 99L;
 
     String jsonDeEntrada =
@@ -180,7 +180,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void atualizarAluno_ComNomeInvalido_RetornarErroMessage400() throws Exception {
+  void atualizarAluno_ComNomeInvalido_RetornarErroMessage400() throws Exception {
     Long aluno_id = 1L;
 
     String jsonDeEntrada = "{" + "\"nome\": \"Jo5e\"," + "\"sobrenome\": \"William!\"" + "}";
@@ -195,7 +195,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void deletarAluno_RetornarStatus204() throws Exception {
+  void deletarAluno_RetornarStatus204() throws Exception {
     Long id = 1L;
     doNothing().when(service).deletarAluno(any(Long.class));
 
@@ -204,7 +204,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void deletarAluno_ComIdInexistente_RetornarErroMessage404() throws Exception {
+  void deletarAluno_ComIdInexistente_RetornarErroMessage404() throws Exception {
     Long id = 99L;
     doThrow(new AlunoNaoEncontradoException(id)).when(service).deletarAluno(any(Long.class));
 
@@ -213,7 +213,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void buscarAluno_ComIdInexistente_RetornarErroMessage404() throws Exception {
+  void buscarAluno_ComIdInexistente_RetornarErroMessage404() throws Exception {
     Long id = 99L;
 
     when(service.buscarPorId(any(Long.class))).thenThrow(new AlunoNaoEncontradoException(id));
@@ -224,7 +224,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void buscarAluno_ComIdExistente_RetornarAlunoComStatus200() throws Exception {
+  void buscarAluno_ComIdExistente_RetornarAlunoComStatus200() throws Exception {
     AlunoDto alunoTeste = new AlunoDto();
     alunoTeste.setId(1L);
     alunoTeste.setNome("KARINE");
@@ -240,8 +240,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void buscarTodosOsAlunos_ComFiltrosValidos_RetornarListaComAlunosComStatus200()
-      throws Exception {
+  void buscarTodosOsAlunos_ComFiltrosValidos_RetornarListaComAlunosComStatus200() throws Exception {
     Integer pagina = 0;
     Integer limite = 10;
 
@@ -275,8 +274,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void buscarTodosOsAlunos_ComParametrosListagemInvalidos_RetornarErro400()
-      throws Exception {
+  void buscarTodosOsAlunos_ComParametrosListagemInvalidos_RetornarErro400() throws Exception {
     Integer pagina = 0;
     Integer limite = 10;
 
@@ -296,7 +294,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void trasferirAlunoDeTurma_DadosValidos_RetornarStatus200() throws Exception {
+  void trasferirAlunoDeTurma_DadosValidos_RetornarStatus200() throws Exception {
 
     Turma turmaNova =
         new Turma(
@@ -325,7 +323,7 @@ class AlunoControllerTest {
   }
 
   @Test
-  public void trasferirAlunoDeTurma_TurmaNovaLotada_RetornarStatus409() throws Exception {
+  void trasferirAlunoDeTurma_TurmaNovaLotada_RetornarStatus409() throws Exception {
 
     Turma turmaNova =
         new Turma(
