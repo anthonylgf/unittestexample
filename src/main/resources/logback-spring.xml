@@ -39,7 +39,7 @@
         </root>
     </springProfile>
 
-    <springProfile name="default, docker-local">
+    <springProfile name="default, docker-local, docker">
         <appender name="STDOUT_LEGIVEL" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
                 <pattern>%d{HH:mm:ss.SSS} [%X{correlationId}] %highlight(%-5level) %cyan(%logger{15}) - %msg%n</pattern>
