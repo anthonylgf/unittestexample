@@ -14,9 +14,14 @@ import com.example.unittestexample.repositories.AlunoRepository;
 import com.example.unittestexample.repositories.AlunoSpecificationFactory;
 import com.example.unittestexample.repositories.TurmaRepository;
 import com.example.unittestexample.utils.DateUtils;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class AlunoService {
 
   private final AlunoRepository alunoRepository;
@@ -35,41 +39,87 @@ public class AlunoService {
   private final TurmaRepository turmaRepository;
   private final AlunoMapper mapper;
 
+  private final Counter alunosCriadosCounter;
+  private final Timer criarAlunoTimer;
+  private final List<Aluno> filaPendentes = new CopyOnWriteArrayList<>();
+
+  public AlunoService(
+      MeterRegistry registry,
+      AlunoRepository repository,
+      ApplicationProperties applicationProperties,
+      DateUtils dateUtils,
+      AlunoPublisher alunoPublisher,
+      TurmaRepository turmaRepository,
+      AlunoMapper mapper) {
+
+    this.alunoRepository = repository;
+    this.applicationProperties = applicationProperties;
+    this.dateUtils = dateUtils;
+    this.alunoPublisher = alunoPublisher;
+    this.turmaRepository = turmaRepository;
+    this.mapper = mapper;
+
+    this.criarAlunoTimer =
+        Timer.builder("aluno.criar.duration")
+            .description("Tempo de execucao da operacao criar aluno")
+            .publishPercentiles(0.5, 0.95, 0.99)
+            .register(registry);
+
+    this.alunosCriadosCounter =
+        Counter.builder("aluno.criado")
+            .description("Total de alunos criados com sucesso")
+            .tag("origem", "api")
+            .register(registry);
+
+    Gauge.builder("aluno.fila.pendentes", filaPendentes, java.util.List::size)
+        .description("Quantidade de alunos aguardando processamento")
+        .register(registry);
+  }
+
   @Transactional
   public Aluno salvar(Aluno aluno) {
-    // Verificar se a idade do aluno eh valida
-    int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
-    if (!idadeValida(idadeAluno)) {
-      throw new IdadeInvalidaException(
-          idadeAluno,
-          applicationProperties.getMinimoIdade(),
-          applicationProperties.getMaximoIdade());
-    }
-    if (aluno.getTurma() == null) {
-      throw new TurmaObrigatoriaException();
-    }
+    return criarAlunoTimer.record(
+        () -> {
+          filaPendentes.add(aluno);
+          try {
+            // Verificar se a idade do aluno eh valida
+            int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
+            if (!idadeValida(idadeAluno)) {
+              throw new IdadeInvalidaException(
+                  idadeAluno,
+                  applicationProperties.getMinimoIdade(),
+                  applicationProperties.getMaximoIdade());
+            }
+            if (aluno.getTurma() == null) {
+              throw new TurmaObrigatoriaException();
+            }
 
-    Turma turma =
-        turmaRepository
-            .findById(aluno.getTurma().getId())
-            .orElseThrow(() -> new TurmaNaoEncontradaException(aluno.getTurma().getId()));
+            Turma turma =
+                turmaRepository
+                    .findById(aluno.getTurma().getId())
+                    .orElseThrow(() -> new TurmaNaoEncontradaException(aluno.getTurma().getId()));
 
-    if (turma.getAlunos().size() >= turma.getLimiteTurma()) {
-      throw new TurmaLotadaException(turma.getNome(), turma.getLimiteTurma());
-    }
+            if (turma.getAlunos().size() >= turma.getLimiteTurma()) {
+              throw new TurmaLotadaException(turma.getNome(), turma.getLimiteTurma());
+            }
 
-    aluno.setTurma(turma);
+            aluno.setTurma(turma);
 
-    // Verificar se nao existe um aluno com o mesmo nome
-    Optional<Aluno> alunoMesmoNome = alunoRepository.findByNomeCompleto(aluno.getNomeCompleto());
-    if (alunoMesmoNome.isPresent()) {
-      throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
-    }
-    Aluno alunoSalvo = alunoRepository.save(aluno);
+            // Verificar se nao existe um aluno com o mesmo nome
+            Optional<Aluno> alunoMesmoNome =
+                alunoRepository.findByNomeCompleto(aluno.getNomeCompleto());
+            if (alunoMesmoNome.isPresent()) {
+              throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
+            }
+            Aluno alunoSalvo = alunoRepository.save(aluno);
 
-    alunoPublisher.sendAluno(alunoSalvo);
+            alunoPublisher.sendAluno(alunoSalvo);
 
-    return alunoSalvo;
+            return alunoSalvo;
+          } finally {
+            filaPendentes.remove(aluno);
+          }
+        });
   }
 
   public void atualizarAluno(Long id, Aluno aluno) {

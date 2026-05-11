@@ -16,6 +16,8 @@ import com.example.unittestexample.publisher.AlunoPublisher;
 import com.example.unittestexample.repositories.AlunoRepository;
 import com.example.unittestexample.repositories.TurmaRepository;
 import com.example.unittestexample.utils.DateUtils;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -23,9 +25,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -37,7 +39,7 @@ import org.springframework.data.jpa.domain.Specification;
 @ExtendWith(MockitoExtension.class)
 class AlunoServiceTest {
 
-  @InjectMocks AlunoService alunoService;
+  AlunoService alunoService;
 
   @Mock AlunoRepository alunoRepository;
   @Mock ApplicationProperties applicationProperties;
@@ -45,6 +47,35 @@ class AlunoServiceTest {
   @Mock AlunoPublisher alunoPublisher;
   @Mock AlunoMapper mapper;
   @Mock TurmaRepository turmaRepository;
+  @Mock private MeterRegistry registry = new SimpleMeterRegistry();
+
+  private Aluno aluno;
+  private Turma turma;
+
+  @BeforeEach
+  void setUp() {
+    registry = new SimpleMeterRegistry();
+
+    alunoService =
+        new AlunoService(
+            registry,
+            alunoRepository,
+            applicationProperties,
+            dateUtils,
+            alunoPublisher,
+            turmaRepository,
+            mapper);
+    turma = new Turma();
+    turma.setId(1L);
+    turma.setNome("Turma A");
+    turma.setLimiteTurma(30);
+    turma.setAlunos(new ArrayList<>());
+
+    aluno = new Aluno();
+    aluno.setNomeCompleto("João Silva");
+    aluno.setDataNascimento(LocalDate.of(2010, 1, 1));
+    aluno.setTurma(turma);
+  }
 
   @Test
   void salvar_ComAlunoValido_RetornarAlunoSalvo() {
@@ -59,13 +90,13 @@ class AlunoServiceTest {
     when(applicationProperties.getMaximoIdade()).thenReturn(10);
     when(applicationProperties.getMinimoIdade()).thenReturn(2);
     when(dateUtils.diferencaEmAnosDataAtual(any(LocalDate.class))).thenReturn(4);
-
     when(turmaRepository.findById(1L)).thenReturn(Optional.of(turma));
     when(alunoRepository.findByNomeCompleto(anyString())).thenReturn(Optional.empty());
+    when(alunoRepository.save(any(Aluno.class))).thenReturn(aluno);
 
-    lenient().when(alunoRepository.save(any(Aluno.class))).thenReturn(aluno);
+    doNothing().when(alunoPublisher).sendAluno(any(Aluno.class));
+
     lenient().when(mapper.mapearParaAlunoDto(any(Aluno.class))).thenReturn(alunoDtoEsperado);
-    lenient().doNothing().when(alunoPublisher).sendAluno(any(Aluno.class));
 
     Aluno alunoSalvo = alunoService.salvar(aluno);
 
