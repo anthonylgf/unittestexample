@@ -38,9 +38,8 @@ public class AlunoService {
   private final AlunoPublisher alunoPublisher;
   private final TurmaRepository turmaRepository;
   private final AlunoMapper mapper;
+  private final MeterRegistry registry;
 
-  private final Counter alunosCriadosCounter;
-  private final Timer criarAlunoTimer;
   private final List<Aluno> filaPendentes = new CopyOnWriteArrayList<>();
 
   public AlunoService(
@@ -58,18 +57,7 @@ public class AlunoService {
     this.alunoPublisher = alunoPublisher;
     this.turmaRepository = turmaRepository;
     this.mapper = mapper;
-
-    this.criarAlunoTimer =
-        Timer.builder("aluno.criar.duration")
-            .description("Tempo de execucao da operacao criar aluno")
-            .publishPercentiles(0.5, 0.95, 0.99)
-            .register(registry);
-
-    this.alunosCriadosCounter =
-        Counter.builder("aluno.criado")
-            .description("Total de alunos criados com sucesso")
-            .tag("origem", "api")
-            .register(registry);
+    this.registry = registry;
 
     Gauge.builder("aluno.fila.pendentes", filaPendentes, java.util.List::size)
         .description("Quantidade de alunos aguardando processamento")
@@ -78,48 +66,59 @@ public class AlunoService {
 
   @Transactional
   public Aluno salvar(Aluno aluno) {
-    return criarAlunoTimer.record(
-        () -> {
-          filaPendentes.add(aluno);
-          try {
-            // Verificar se a idade do aluno eh valida
-            int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
-            if (!idadeValida(idadeAluno)) {
-              throw new IdadeInvalidaException(
-                  idadeAluno,
-                  applicationProperties.getMinimoIdade(),
-                  applicationProperties.getMaximoIdade());
-            }
-            if (aluno.getTurma() == null) {
-              throw new TurmaObrigatoriaException();
-            }
+    return Timer.builder("aluno.criar.duration")
+        .description("Tempo de execucao da operacao criar aluno")
+        .publishPercentiles(0.5, 0.95, 0.99)
+        .register(registry)
+        .record(
+            () -> {
+              filaPendentes.add(aluno);
+              try {
+                // Verificar se a idade do aluno eh valida
+                int idadeAluno = dateUtils.diferencaEmAnosDataAtual(aluno.getDataNascimento());
+                if (!idadeValida(idadeAluno)) {
+                  throw new IdadeInvalidaException(
+                      idadeAluno,
+                      applicationProperties.getMinimoIdade(),
+                      applicationProperties.getMaximoIdade());
+                }
+                if (aluno.getTurma() == null) {
+                  throw new TurmaObrigatoriaException();
+                }
 
-            Turma turma =
-                turmaRepository
-                    .findById(aluno.getTurma().getId())
-                    .orElseThrow(() -> new TurmaNaoEncontradaException(aluno.getTurma().getId()));
+                Turma turma =
+                    turmaRepository
+                        .findById(aluno.getTurma().getId())
+                        .orElseThrow(
+                            () -> new TurmaNaoEncontradaException(aluno.getTurma().getId()));
 
-            if (turma.getAlunos().size() >= turma.getLimiteTurma()) {
-              throw new TurmaLotadaException(turma.getNome(), turma.getLimiteTurma());
-            }
+                if (turma.getAlunos().size() >= turma.getLimiteTurma()) {
+                  throw new TurmaLotadaException(turma.getNome(), turma.getLimiteTurma());
+                }
 
-            aluno.setTurma(turma);
+                aluno.setTurma(turma);
 
-            // Verificar se nao existe um aluno com o mesmo nome
-            Optional<Aluno> alunoMesmoNome =
-                alunoRepository.findByNomeCompleto(aluno.getNomeCompleto());
-            if (alunoMesmoNome.isPresent()) {
-              throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
-            }
-            Aluno alunoSalvo = alunoRepository.save(aluno);
+                // Verificar se nao existe um aluno com o mesmo nome
+                Optional<Aluno> alunoMesmoNome =
+                    alunoRepository.findByNomeCompleto(aluno.getNomeCompleto());
+                if (alunoMesmoNome.isPresent()) {
+                  throw new AlunoExisteMesmoNomeException(aluno.getNomeCompleto());
+                }
+                Aluno alunoSalvo = alunoRepository.save(aluno);
 
-            alunoPublisher.sendAluno(alunoSalvo);
+                Counter.builder("aluno.criado")
+                    .description("Total de alunos criados com sucesso")
+                    .tag("origem", "api")
+                    .register(registry)
+                    .increment();
 
-            return alunoSalvo;
-          } finally {
-            filaPendentes.remove(aluno);
-          }
-        });
+                alunoPublisher.sendAluno(alunoSalvo);
+
+                return alunoSalvo;
+              } finally {
+                filaPendentes.remove(aluno);
+              }
+            });
   }
 
   public void atualizarAluno(Long id, Aluno aluno) {

@@ -2,7 +2,6 @@ package com.example.unittestexample.configs;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.config.MeterFilter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,15 +10,13 @@ import org.springframework.context.annotation.Configuration;
 public class MetricsConfig {
 
   @Bean
-  MeterRegistryCustomizer<MeterRegistry> commonTags(
-      @Value("${spring.application.name:unittestexample}") String app,
-      @Value("${app.environment:local}") String env) {
+  MeterRegistryCustomizer<MeterRegistry> commonTags(MetricsProperties properties) {
     return registry ->
         registry
             .config()
             .commonTags(
-                "application", app,
-                "environment", env);
+                "application", properties.getName(),
+                "environment", properties.getEnvironment());
   }
 
   @Bean

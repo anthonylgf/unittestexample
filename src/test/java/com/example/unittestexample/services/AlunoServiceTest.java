@@ -47,10 +47,7 @@ class AlunoServiceTest {
   @Mock AlunoPublisher alunoPublisher;
   @Mock AlunoMapper mapper;
   @Mock TurmaRepository turmaRepository;
-  @Mock private MeterRegistry registry = new SimpleMeterRegistry();
-
-  private Aluno aluno;
-  private Turma turma;
+  MeterRegistry registry;
 
   @BeforeEach
   void setUp() {
@@ -65,16 +62,6 @@ class AlunoServiceTest {
             alunoPublisher,
             turmaRepository,
             mapper);
-    turma = new Turma();
-    turma.setId(1L);
-    turma.setNome("Turma A");
-    turma.setLimiteTurma(30);
-    turma.setAlunos(new ArrayList<>());
-
-    aluno = new Aluno();
-    aluno.setNomeCompleto("João Silva");
-    aluno.setDataNascimento(LocalDate.of(2010, 1, 1));
-    aluno.setTurma(turma);
   }
 
   @Test
