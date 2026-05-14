@@ -108,7 +108,7 @@ public class AlunoService {
 
                 Counter.builder("aluno.criado")
                     .description("Total de alunos criados com sucesso")
-                    .tag("origem", "api")
+                    .tag("genero", aluno.getGenero().name())
                     .register(registry)
                     .increment();
 
